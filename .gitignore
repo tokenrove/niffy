@@ -1,0 +1,14 @@
+# generated files
+lex.c
+parse.c
+parse.h
+*.o
+*.d
+
+# executables
+niffy
+lex_test
+parse_test
+
+# editor save files
+*~

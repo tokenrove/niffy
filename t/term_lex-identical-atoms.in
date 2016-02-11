@@ -1,0 +1,4 @@
+foo
+'foo'
+'f\oo'
+'\x66\x6f\x6f'

@@ -1,0 +1,5 @@
+% A comment
+
+test:module({[{foo_bar, 42}, {'Baz Quux', <<1,2,3,4,"foo">>}]}).
+call([$f, $o, $o, $ , $\n]).
+-1.5. % trailing comment
