@@ -1,0 +1,12 @@
+sudo: false
+language: erlang
+script: make check INCLUDE='-I${_KERL_ACTIVE_DIR}/usr/include' PROVEFLAGS=-v
+otp_release:
+  - 17.5
+  - 18.1
+  - 18.2
+addons:
+  apt:
+    packages:
+      - ragel
+      - lemon

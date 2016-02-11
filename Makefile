@@ -1,12 +1,14 @@
 .PHONY: clean all check
 
-CC := gcc
-CFLAGS := -MMD -Wall -Wextra -pedantic -ggdb -fms-extensions -rdynamic
-PARSE_CFLAGS := -MMD -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-sign-compare -ggdb
-LDFLAGS := -ldl
-RAGEL := ragel
-RAGELFLAGS := -G2
-LEMON := lemon
+CC ?= gcc
+CFLAGS ?= -MMD -std=gnu99 -Wall -Wextra -ggdb -fms-extensions -rdynamic
+CFLAGS := $(CFLAGS) $(INCLUDE)
+PARSE_CFLAGS := $(CFLAGS) -Wno-unused-variable -Wno-unused-parameter -Wno-sign-compare
+LDFLAGS ?= -ldl
+RAGEL ?= ragel
+RAGELFLAGS ?= -G2
+LEMON ?= lemon
+PROVEFLAGS ?=
 
 NIFFY_OBJS = main.o nif_stubs.o lex.o parse.o atom.o str.o variable.o map.o
 OBJS = $(NIFFY_OBJS)
@@ -36,6 +38,6 @@ clean:
 	$(RM) $(OBJS) $(OBJS:.o=.d) $(GENERATED) lex.t niffy
 
 check: lex_test parse_test
-	prove
+	prove $(PROVEFLAGS)
 
 -include $(OBJS:.o=.d)
