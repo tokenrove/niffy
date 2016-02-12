@@ -39,7 +39,7 @@ typedef enum {
 /* helpers */
 extern void term_pretty_print(FILE *, const term *);
 extern term tuple_of_list(term);
-extern term list_prepend_string(struct str *, term);
+extern bool nconc(term, term);
 extern term iolist_to_binary(term);
 extern term_type type_of_term(const term);
 extern term tagged_atom(atom);

@@ -37,6 +37,9 @@
 #define NIL TAG_IMMED2_NIL
 #define MAX_ATOM_INDEX (~(~((unsigned) 0) << (sizeof(unsigned)*8 - TAG_IMMED2_SIZE)))
 
+/* conservative */
+#define MAX_LIST_LENGTH (1<<24)
+
 const term nil = NIL;
 const unsigned max_atom_index = MAX_ATOM_INDEX;
 
@@ -187,9 +190,20 @@ void term_pretty_print(FILE *out, const term *p)
 }
 
 
-term list_prepend_string(struct str *s, term t)
+bool nconc(term a, term b)
 {
-    return THE_NON_VALUE;
+    int max_len = MAX_LIST_LENGTH;
+    do {
+        if (TAG_PRIMARY_LIST != (a & TAG_PRIMARY))
+            return false;
+        term *p = unbox(a);
+        if (NIL == CDR(p)) {
+            CDR(p) = b;
+            return true;
+        }
+        a = CDR(p);
+    } while (--max_len > 0);
+    return 0;
 }
 
 
@@ -742,7 +756,7 @@ term enif_make_list_from_array(ErlNifEnv *UNUSED, const term arr[], unsigned cou
 
 int enif_get_list_length(ErlNifEnv *UNUSED, term t, unsigned *len)
 {
-    int max_len = 1<<24;        /* conservative */
+    int max_len = MAX_LIST_LENGTH;
     *len = 0;
     do {
         if (NIL == t) return 1;
