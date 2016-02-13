@@ -107,7 +107,7 @@ static void pretty_print_tuple(FILE *out, const term *p)
     for (unsigned i = 0; i < count; ++i) {
         if (i != 0)
             fputs(",", out);
-        term_pretty_print(out, &p[1+i]);
+        pretty_print_term(out, &p[1+i]);
     }
     fputc('}', out);
 }
@@ -157,7 +157,7 @@ static void pretty_print_list(FILE *out, const term *p)
     while (NIL != t) {
         if (TAG_PRIMARY_LIST != (t & TAG_PRIMARY)) {
             fputs("|", out);
-            term_pretty_print(out, &t);
+            pretty_print_term(out, &t);
             break;
         }
         if (print_sep_p)
@@ -165,7 +165,7 @@ static void pretty_print_list(FILE *out, const term *p)
         else
             print_sep_p = true;
         p = unbox(t);
-        term_pretty_print(out, &CAR(p));
+        pretty_print_term(out, &CAR(p));
         t = CDR(p);
     }
     fputc(']', out);
@@ -182,6 +182,7 @@ void pretty_print_argument_list(FILE *out, const term *p)
             fputs(",", out);
         else
             print_sep_p = true;
+        assert(TAG_PRIMARY_LIST == (t & TAG_PRIMARY));
         p = unbox(t);
         pretty_print_term(out, &CAR(p));
         t = CDR(p);
@@ -191,7 +192,7 @@ void pretty_print_argument_list(FILE *out, const term *p)
 
 
 
-void term_pretty_print(FILE *out, const term *p)
+void pretty_print_term(FILE *out, const term *p)
 {
     term t = *p;
     switch (type_of_term(t)) {
@@ -208,7 +209,7 @@ void term_pretty_print(FILE *out, const term *p)
         fprintf(out, "<unknown immediate>");
         break;
     case TERM_BOXED:
-        term_pretty_print(out, unbox(t));
+        pretty_print_term(out, unbox(t));
         break;
     case TERM_TUPLE:
         pretty_print_tuple(out, p);

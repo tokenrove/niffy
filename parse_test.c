@@ -31,7 +31,7 @@ static void print(struct statement *st)
         fputs(" = ", stdout);
         term head;
         enif_get_list_cell(NULL, st->call.args, &head, NULL);
-        term_pretty_print(stdout, &head);
+        pretty_print_term(stdout, &head);
         puts(".");
         assert(variable_assign(st->variable, head));
         break;

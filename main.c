@@ -77,7 +77,7 @@ static term call(struct function_call *call)
             term result = f->fptr(m, arity, p);
             if (m->exception) {
                 fprintf(stderr, "raised exception ");
-                term_pretty_print(stderr, &m->exception);
+                pretty_print_term(stderr, &m->exception);
                 fputs("", stderr);
                 /* continuing cowardly */
             }
@@ -113,7 +113,7 @@ static void handle_statement(struct statement *st)
         break;
     case AST_ST_MFA:
         result = call(&st->call);
-        term_pretty_print(stdout, &result);
+        pretty_print_term(stdout, &result);
         putchar('\n');
         break;
     }
