@@ -13,8 +13,10 @@
 %extra_argument {callback cb}
 
 %default_type {term}
+
 %token_type {struct token}
 %token_prefix TOK_
+%token_destructor { destroy_token(&$$); }
 
 statements ::= statement.
 
@@ -114,9 +116,11 @@ atomic(A) ::= strings(S). { A = S; }
 
 strings(S) ::= STRING(T). {
     S = enif_make_string_len(NULL, T.string_value->data, T.string_value->len, ERL_NIF_LATIN1);
+    destroy_token(&T);
 }
 strings(S) ::= STRING(H) strings(T). {
     S = enif_make_string_len(NULL, H.string_value->data, H.string_value->len, ERL_NIF_LATIN1);
+    destroy_token(&H);
     assert(nconc(S, T));
 }
 

@@ -29,6 +29,16 @@ static void init(void)
 }
 
 
+__attribute__((destructor))
+static void shutdown(void)
+{
+    free(table);
+    for (unsigned i = 1; i <= n_entries; ++i)
+        str_free((struct str **)&string_of_atom[i]);
+    free(string_of_atom);
+}
+
+
 static hash hash_of_string(const struct str *s)
 {
     hash v = 0;
@@ -96,8 +106,10 @@ atom intern(const struct str *name)
 {
     hash h = hash_of_string(name);
     atom sym = lookup(name, h);
-    if (sym != 0)
+    if (sym != 0) {
+        str_free((struct str **)&name);
         return sym;
+    }
     sym = ++symbol_counter;
     insert(name, h, sym);
     return sym;
