@@ -13,8 +13,10 @@
 %extra_argument {callback cb}
 
 %default_type {term}
+
 %token_type {struct token}
 %token_prefix TOK_
+%token_destructor { destroy_token(&$$); }
 
 statements ::= statement.
 
@@ -98,7 +100,7 @@ bit_type ::= ATOM.
 bit_type ::= ATOM COLON INTEGER.
 
 tuple(T) ::= LBRACE RBRACE. { T = enif_make_tuple(NULL, 0); }
-tuple(T) ::= LBRACE terms(L) RBRACE. { T = tuple_of_list(L); }
+tuple(T) ::= LBRACE terms(L) RBRACE. { T = tuple_of_list(NULL, L); }
 
 term(T) ::= atomic(A). { T = A; }
 term(T) ::= tuple(A). { T = A; }
@@ -114,9 +116,11 @@ atomic(A) ::= strings(S). { A = S; }
 
 strings(S) ::= STRING(T). {
     S = enif_make_string_len(NULL, T.string_value->data, T.string_value->len, ERL_NIF_LATIN1);
+    destroy_token(&T);
 }
 strings(S) ::= STRING(H) strings(T). {
     S = enif_make_string_len(NULL, H.string_value->data, H.string_value->len, ERL_NIF_LATIN1);
+    destroy_token(&H);
     assert(nconc(S, T));
 }
 

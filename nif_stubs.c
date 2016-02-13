@@ -56,6 +56,29 @@ struct flonum {
 #define CDR(p) ((p)[1])
 
 
+static struct enif_environment_t global;
+
+__attribute__((alloc_size(2), malloc))
+static void *alloc(ErlNifEnv *env, size_t size)
+{
+    void *p = malloc(size);
+    if (p == NULL)
+        return NULL;
+    struct alloc *cell = malloc(sizeof(*cell));
+    if (cell == NULL) {
+        free(p);
+        return NULL;
+    }
+    if (!env) env = &global;
+    *cell = (struct alloc){
+        .p = p,
+        .next = env->allocations
+    };
+    env->allocations = cell;
+    return p;
+}
+
+
 term_type type_of_term(const term t)
 {
     if (THE_NON_VALUE == t)
@@ -351,11 +374,11 @@ int enif_get_long(ErlNifEnv *UNUSED, term t, long *ip)
 }
 
 
-term enif_make_double(ErlNifEnv *UNUSED, double d)
+term enif_make_double(ErlNifEnv *env, double d)
 {
     struct flonum *p;
 
-    p = malloc(sizeof(*p));
+    p = alloc(env, sizeof(*p));
     p->header = TAG_HEADER_FLONUM;
     p->flonum = d;
     return box(p);
@@ -600,9 +623,9 @@ int enif_get_atom(ErlNifEnv *UNUSED, term t, char *buf, unsigned len,
 }
 
 
-term enif_make_tuple(ErlNifEnv *UNUSED, unsigned count, ...)
+term enif_make_tuple(ErlNifEnv *env, unsigned count, ...)
 {
-    term *t = malloc((1+count) * sizeof(*t));
+    term *t = alloc(env, (1+count) * sizeof(*t));
     t[0] = count << TAG_HEADER_SIZE;
     va_list ap;
     va_start(ap, count);
@@ -613,9 +636,9 @@ term enif_make_tuple(ErlNifEnv *UNUSED, unsigned count, ...)
 }
 
 
-term enif_make_tuple_from_array(ErlNifEnv *UNUSED, const term arr[], unsigned count)
+term enif_make_tuple_from_array(ErlNifEnv *env, const term arr[], unsigned count)
 {
-    term *t = malloc((1+count) * sizeof(*t));
+    term *t = alloc(env, (1+count) * sizeof(*t));
     t[0] = count << TAG_HEADER_SIZE;
     memcpy(t+1, arr, sizeof(*t) * count);
     return box(t);
@@ -637,12 +660,12 @@ int enif_get_tuple(ErlNifEnv *UNUSED, term tuple, int *arity, const term **array
 }
 
 
-term tuple_of_list(term head)
+term tuple_of_list(ErlNifEnv *env, term head)
 {
     unsigned count;
-    if (1 != enif_get_list_length(NULL, head, &count))
+    if (1 != enif_get_list_length(env, head, &count))
         return THE_NON_VALUE;
-    term *t = malloc((1+count) * sizeof(*t));
+    term *t = alloc(env, (1+count) * sizeof(*t));
     t[0] = count << TAG_HEADER_SIZE;
     for (unsigned i = 0; i < count; ++i) {
         term *cell = unbox(head);
@@ -657,10 +680,10 @@ term tuple_of_list(term head)
 
 #define HEAP_BIN_TAG(s) (TAG_HEADER_HEAP_BIN | ((s)<< TAG_HEADER_SIZE))
 
-term enif_make_binary(ErlNifEnv *UNUSED, ErlNifBinary *bin)
+term enif_make_binary(ErlNifEnv *env, ErlNifBinary *bin)
 {
     /* Right now, all our binaries are heap binaries. */
-    term *p = malloc(sizeof(*p) + bin->size);
+    term *p = alloc(env, sizeof(*p) + bin->size);
     memcpy(p+1, bin->data, bin->size);
     p[0] = HEAP_BIN_TAG(bin->size);
     return box(p);
@@ -739,9 +762,9 @@ void enif_release_resource(void *UNUSED)
 }
 
 
-term enif_make_resource(ErlNifEnv *UNUSED, void *obj)
+term enif_make_resource(ErlNifEnv *env, void *obj)
 {
-    term *p = malloc(sizeof(*p) + sizeof(obj));
+    term *p = alloc(env, sizeof(*p) + sizeof(obj));
     *p = TAG_HEADER_EXTERNAL_REF;
     void **q = (void **)(p+1);
     *q = obj;
@@ -770,12 +793,12 @@ term enif_make_badarg(ErlNifEnv *env)
 }
 
 
-term enif_make_list(ErlNifEnv *UNUSED, unsigned count, ...)
+term enif_make_list(ErlNifEnv *env, unsigned count, ...)
 {
     if (0 == count)
         return NIL;
 
-    term *p = malloc(2*count*sizeof(*p));
+    term *p = alloc(env, 2*count*sizeof(*p));
     term head = box_list(p);
     term *q = &head;
 
@@ -792,12 +815,12 @@ term enif_make_list(ErlNifEnv *UNUSED, unsigned count, ...)
 }
 
 
-term enif_make_list_from_array(ErlNifEnv *UNUSED, const term arr[], unsigned count)
+term enif_make_list_from_array(ErlNifEnv *env, const term arr[], unsigned count)
 {
     if (0 == count)
         return NIL;
 
-    term *p = malloc(2*count*sizeof(*p));
+    term *p = alloc(env, 2*count*sizeof(*p));
     term head = box_list(p);
     term *q = &head;
 
@@ -839,9 +862,9 @@ int enif_get_list_cell(ErlNifEnv *UNUSED, term t, term *car, term *cdr)
 }
 
 
-term enif_make_list_cell(ErlNifEnv *UNUSED, term car, term cdr)
+term enif_make_list_cell(ErlNifEnv *env, term car, term cdr)
 {
-    term *cell = malloc(2*sizeof(*cell));
+    term *cell = alloc(env, 2*sizeof(*cell));
     term p = box_list(cell);
     CAR(cell) = car;
     CDR(cell) = cdr;
@@ -856,11 +879,11 @@ ERL_NIF_TERM enif_make_string(ErlNifEnv* env, const char* string,
 }
 
 
-ERL_NIF_TERM enif_make_string_len(ErlNifEnv *UNUSED, const char *string,
-                                  size_t len, ErlNifCharEncoding UNUSED)
+ERL_NIF_TERM enif_make_string_len(ErlNifEnv *env, const char *string,
+                                  size_t len, ErlNifCharEncoding encoding)
 {
-    term *p = malloc(2*len*sizeof(*p));
-    /* assert(encoding == ERL_NIF_LATIN1); */
+    assert(encoding == ERL_NIF_LATIN1);
+    term *p = alloc(env, 2*len*sizeof(*p));
     term head = box_list(p);
     term *q = &head;
 
@@ -935,14 +958,17 @@ term enif_make_ref(ErlNifEnv *UNUSED)
 ErlNifEnv *enif_alloc_env(void)
 {
     /* XXX unimplemented */
-    struct enif_environment_t *env = malloc(sizeof(*env));
+    struct enif_environment_t *env = calloc(1, sizeof(*env));
     return env;
 }
 
 
 void enif_free_env(ErlNifEnv *env)
 {
-    /* XXX unimplemented; should free all terms in this env */
+    for (struct alloc *ap = env->allocations; ap; ap = ap->next) {
+        free(ap->p);
+        ap->p = NULL;
+    }
     free(env);
 }
 

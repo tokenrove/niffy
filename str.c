@@ -24,6 +24,7 @@ struct str *str_dup_cstr(const char *s)
 
 void str_free(struct str **p)
 {
+    if (NULL == *p) return;
     (*p)->avail = (*p)->len = 0;
     free(*p);
     *p = NULL;

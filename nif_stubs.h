@@ -8,6 +8,11 @@
 
 typedef ERL_NIF_TERM term;
 
+struct alloc {
+    void *p;
+    struct alloc *next;
+};
+
 /* This should be called struct shared_object, but the way erl_nif.h
  * is written forces me to use this dumb name (which should not have a
  * trailing _t, and should be a typedef). */
@@ -19,6 +24,7 @@ struct enif_environment_t {
     void *priv_data;
     term exception;
     struct atom_ptr_map fns;
+    struct alloc *allocations;
 };
 
 typedef enum {
@@ -38,8 +44,8 @@ typedef enum {
 
 /* helpers */
 extern void term_pretty_print(FILE *, const term *);
-void pretty_print_argument_list(FILE *out, const term *p);
-term tuple_of_list(term head);
+void pretty_print_argument_list(FILE *, const term *);
+term tuple_of_list(ErlNifEnv *, term);
 extern bool nconc(term, term);
 extern term iolist_to_binary(term);
 extern term_type type_of_term(const term);

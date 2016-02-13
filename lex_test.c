@@ -45,6 +45,7 @@ static bool print_token(void *data, struct token *tk)
     return true;
 }
 
+
 /* read terms from stdin, print token information to stdout */
 int main(void)
 {
@@ -61,6 +62,7 @@ int main(void)
 
         while (lex(&lexer, &token)) {
             print_token(stdout, &token);
+            destroy_token(&token);
         }
     }
     free(line);

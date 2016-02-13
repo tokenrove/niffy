@@ -1,5 +1,5 @@
 /*
- *
+ * Lexer for Erlang terms.
  */
 
 #include <assert.h>
@@ -82,6 +82,8 @@ int_literal =
   %{ if (state->i.negate_p) state->i.value = -state->i.value; }
   ;
 
+# There is a leak here, on erroneous input; we could use a local error
+# state to free these strings here and below under those conditions.
 string_literal =
   '"' >{ token->string_value = str_new(0); }
   (( (escaped_char $1 %0)
@@ -183,4 +185,11 @@ bool lex(struct lexer *state, struct token *token)
     /* p == pe when we need more data; we could be in the middle of a
      * token, though. */
     return state->p < state->pe;
+}
+
+
+void destroy_token(struct token *token)
+{
+    if (TOK_STRING == token->type && token->string_value)
+        str_free(&token->string_value);
 }

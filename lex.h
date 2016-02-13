@@ -41,3 +41,4 @@ struct lexer {                  /* private */
 extern void lex_init(struct lexer *);
 extern void lex_setup_next_line(struct lexer *, char *, bool);
 extern bool lex(struct lexer *, struct token *);
+extern void destroy_token(struct token *token);
