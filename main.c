@@ -67,7 +67,7 @@ static term call(struct function_call *call)
 {
     struct enif_environment_t *m = map_lookup(&modules, call->module);
     assert(NULL != m);
-    term tuple = tuple_of_list(call->args);
+    term tuple = tuple_of_list(NULL, call->args);
     unsigned arity;
     const term *p;
     assert(enif_get_tuple(NULL, tuple, (int *)&arity, &p));

@@ -100,7 +100,7 @@ bit_type ::= ATOM.
 bit_type ::= ATOM COLON INTEGER.
 
 tuple(T) ::= LBRACE RBRACE. { T = enif_make_tuple(NULL, 0); }
-tuple(T) ::= LBRACE terms(L) RBRACE. { T = tuple_of_list(L); }
+tuple(T) ::= LBRACE terms(L) RBRACE. { T = tuple_of_list(NULL, L); }
 
 term(T) ::= atomic(A). { T = A; }
 term(T) ::= tuple(A). { T = A; }
