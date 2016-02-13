@@ -116,7 +116,8 @@ strings(S) ::= STRING(T). {
     S = enif_make_string_len(NULL, T.string_value->data, T.string_value->len, ERL_NIF_LATIN1);
 }
 strings(S) ::= STRING(H) strings(T). {
-    S = list_prepend_string(H.string_value, T);
+    S = enif_make_string_len(NULL, H.string_value->data, H.string_value->len, ERL_NIF_LATIN1);
+    assert(nconc(S, T));
 }
 
 %parse_failure {

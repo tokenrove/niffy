@@ -1,5 +1,6 @@
 
 #include <assert.h>
+#include <ctype.h>
 #include <stdarg.h>
 #include <string.h>
 
@@ -36,6 +37,9 @@
 
 #define NIL TAG_IMMED2_NIL
 #define MAX_ATOM_INDEX (~(~((unsigned) 0) << (sizeof(unsigned)*8 - TAG_IMMED2_SIZE)))
+
+/* conservative */
+#define MAX_LIST_LENGTH (1<<24)
 
 const term nil = NIL;
 const unsigned max_atom_index = MAX_ATOM_INDEX;
@@ -103,21 +107,57 @@ static void pretty_print_tuple(FILE *out, const term *p)
     for (unsigned i = 0; i < count; ++i) {
         if (i != 0)
             fputs(",", out);
-        term_pretty_print(out, &p[1+i]);
+        pretty_print_term(out, &p[1+i]);
     }
     fputc('}', out);
+}
+
+
+static bool is_printable_list(term t)
+{
+    while (NIL != t) {
+        if (TAG_PRIMARY_LIST != (t & TAG_PRIMARY))
+            return false;
+        term *p = unbox(t);
+        int c;
+        if (!enif_get_int(NULL, CAR(p), &c) ||
+            !isgraph(c))
+            return false;
+        t = CDR(p);
+    }
+    return true;
+}
+
+
+static void print_list_as_string(FILE *out, term t)
+{
+    fputc('"', out);
+    while (NIL != t) {
+        assert(TAG_PRIMARY_LIST == (t & TAG_PRIMARY));
+        term *p = unbox(t);
+        int c;
+        assert(enif_get_int(NULL, CAR(p), &c));
+        fputc(c, out);
+        t = CDR(p);
+    }
+    fputc('"', out);
 }
 
 
 static void pretty_print_list(FILE *out, const term *p)
 {
     term t = *p;
+    if (is_printable_list(t)) {
+        print_list_as_string(out, t);
+        return;
+    }
+
     bool print_sep_p = false;
     fputc('[', out);
     while (NIL != t) {
         if (TAG_PRIMARY_LIST != (t & TAG_PRIMARY)) {
             fputs("|", out);
-            term_pretty_print(out, &t);
+            pretty_print_term(out, &t);
             break;
         }
         if (print_sep_p)
@@ -125,14 +165,34 @@ static void pretty_print_list(FILE *out, const term *p)
         else
             print_sep_p = true;
         p = unbox(t);
-        term_pretty_print(out, &CAR(p));
+        pretty_print_term(out, &CAR(p));
         t = CDR(p);
     }
     fputc(']', out);
 }
 
 
-void term_pretty_print(FILE *out, const term *p)
+void pretty_print_argument_list(FILE *out, const term *p)
+{
+    term t = *p;
+    bool print_sep_p = false;
+    fputc('(', out);
+    while (NIL != t) {
+        if (print_sep_p)
+            fputs(",", out);
+        else
+            print_sep_p = true;
+        assert(TAG_PRIMARY_LIST == (t & TAG_PRIMARY));
+        p = unbox(t);
+        pretty_print_term(out, &CAR(p));
+        t = CDR(p);
+    }
+    fputc(')', out);
+}
+
+
+
+void pretty_print_term(FILE *out, const term *p)
 {
     term t = *p;
     switch (type_of_term(t)) {
@@ -149,7 +209,7 @@ void term_pretty_print(FILE *out, const term *p)
         fprintf(out, "<unknown immediate>");
         break;
     case TERM_BOXED:
-        term_pretty_print(out, unbox(t));
+        pretty_print_term(out, unbox(t));
         break;
     case TERM_TUPLE:
         pretty_print_tuple(out, p);
@@ -187,9 +247,20 @@ void term_pretty_print(FILE *out, const term *p)
 }
 
 
-term list_prepend_string(struct str *s, term t)
+bool nconc(term a, term b)
 {
-    return THE_NON_VALUE;
+    int max_len = MAX_LIST_LENGTH;
+    do {
+        if (TAG_PRIMARY_LIST != (a & TAG_PRIMARY))
+            return false;
+        term *p = unbox(a);
+        if (NIL == CDR(p)) {
+            CDR(p) = b;
+            return true;
+        }
+        a = CDR(p);
+    } while (--max_len > 0);
+    return 0;
 }
 
 
@@ -742,7 +813,7 @@ term enif_make_list_from_array(ErlNifEnv *UNUSED, const term arr[], unsigned cou
 
 int enif_get_list_length(ErlNifEnv *UNUSED, term t, unsigned *len)
 {
-    int max_len = 1<<24;        /* conservative */
+    int max_len = MAX_LIST_LENGTH;
     *len = 0;
     do {
         if (NIL == t) return 1;

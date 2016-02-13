@@ -14,7 +14,7 @@ static void pretty_print_mfa(struct function_call *call)
         fputc(':', stdout);
     }
     pretty_print_atom(stdout, call->function);
-    term_pretty_print(stdout, &call->args);
+    pretty_print_argument_list(stdout, &call->args);
 }
 
 
@@ -31,7 +31,7 @@ static void print(struct statement *st)
         fputs(" = ", stdout);
         term head;
         enif_get_list_cell(NULL, st->call.args, &head, NULL);
-        term_pretty_print(stdout, &head);
+        pretty_print_term(stdout, &head);
         puts(".");
         assert(variable_assign(st->variable, head));
         break;
