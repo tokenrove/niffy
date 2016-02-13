@@ -1,5 +1,6 @@
 
 #include <assert.h>
+#include <ctype.h>
 #include <stdarg.h>
 #include <string.h>
 
@@ -112,9 +113,45 @@ static void pretty_print_tuple(FILE *out, const term *p)
 }
 
 
+static bool is_printable_list(term t)
+{
+    while (NIL != t) {
+        if (TAG_PRIMARY_LIST != (t & TAG_PRIMARY))
+            return false;
+        term *p = unbox(t);
+        int c;
+        if (!enif_get_int(NULL, CAR(p), &c) ||
+            !isgraph(c))
+            return false;
+        t = CDR(p);
+    }
+    return true;
+}
+
+
+static void print_list_as_string(FILE *out, term t)
+{
+    fputc('"', out);
+    while (NIL != t) {
+        assert(TAG_PRIMARY_LIST == (t & TAG_PRIMARY));
+        term *p = unbox(t);
+        int c;
+        assert(enif_get_int(NULL, CAR(p), &c));
+        fputc(c, out);
+        t = CDR(p);
+    }
+    fputc('"', out);
+}
+
+
 static void pretty_print_list(FILE *out, const term *p)
 {
     term t = *p;
+    if (is_printable_list(t)) {
+        print_list_as_string(out, t);
+        return;
+    }
+
     bool print_sep_p = false;
     fputc('[', out);
     while (NIL != t) {
@@ -133,6 +170,25 @@ static void pretty_print_list(FILE *out, const term *p)
     }
     fputc(']', out);
 }
+
+
+void pretty_print_argument_list(FILE *out, const term *p)
+{
+    term t = *p;
+    bool print_sep_p = false;
+    fputc('(', out);
+    while (NIL != t) {
+        if (print_sep_p)
+            fputs(",", out);
+        else
+            print_sep_p = true;
+        p = unbox(t);
+        pretty_print_term(out, &CAR(p));
+        t = CDR(p);
+    }
+    fputc(')', out);
+}
+
 
 
 void term_pretty_print(FILE *out, const term *p)

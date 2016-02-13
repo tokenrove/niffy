@@ -14,7 +14,7 @@ static void pretty_print_mfa(struct function_call *call)
         fputc(':', stdout);
     }
     pretty_print_atom(stdout, call->function);
-    term_pretty_print(stdout, &call->args);
+    pretty_print_argument_list(stdout, &call->args);
 }
 
 

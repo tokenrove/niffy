@@ -38,7 +38,8 @@ typedef enum {
 
 /* helpers */
 extern void term_pretty_print(FILE *, const term *);
-extern term tuple_of_list(term);
+void pretty_print_argument_list(FILE *out, const term *p);
+term tuple_of_list(term head);
 extern bool nconc(term, term);
 extern term iolist_to_binary(term);
 extern term_type type_of_term(const term);
