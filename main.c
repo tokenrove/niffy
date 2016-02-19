@@ -234,11 +234,11 @@ int main(int argc, char **argv)
                don't have nested expressions, so if we see a dot, we
                encourage the parser to do its work eagerly. */
             if (token.type == TOK_DOT)
-                Parse(pParser, 0, (struct token){0}, handle_statement);
+                Parse(pParser, 0, (struct token){.type = 0, .location = lexer.location}, handle_statement);
         }
     }
 
-    Parse(pParser, 0, (struct token){0}, handle_statement);
+    Parse(pParser, 0, (struct token){.type = 0, .location = lexer.location}, handle_statement);
     free(line);
     ParseFree(pParser, free);
 

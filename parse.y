@@ -18,17 +18,20 @@
 %token_prefix TOK_
 %token_destructor { destroy_token(&$$); }
 
-statements ::= statement.
+top ::= statements.
+
+statements ::= statement statements.
+statements ::= .
 
 %type statement {struct statement}
-statement(S) ::= statement VARIABLE(V) EQUALS function_call(C) DOT.
+statement(S) ::= VARIABLE(V) EQUALS function_call(C) DOT.
   {
     S.type = AST_ST_V_OF_MFA;
     S.variable = V.atom_value;
     S.call = C;
     cb(&S);
   }
-statement(S) ::= statement VARIABLE(V) EQUALS terms(T) DOT.
+statement(S) ::= VARIABLE(V) EQUALS terms(T) DOT.
   {
     S.type = AST_ST_V_OF_TERM;
     S.variable = V.atom_value;
@@ -37,13 +40,12 @@ statement(S) ::= statement VARIABLE(V) EQUALS terms(T) DOT.
     };
     cb(&S);
   }
-statement(S) ::= statement function_call(C) DOT.
+statement(S) ::= function_call(C) DOT.
   {
     S.type = AST_ST_MFA;
     S.call = C;
     cb(&S);
   }
-statement ::= .
 
 %type function_call {struct function_call}
 function_call(C) ::= ATOM(M) COLON ATOM(F) argument_list(A).
@@ -129,5 +131,5 @@ strings(S) ::= STRING(H) strings(T). {
 }
 
 %syntax_error {
-    fprintf(stderr, "%d: syntax error\n", TOKEN.location.line_num);
+    fprintf(stderr, "%d: syntax error (token %d)\n", TOKEN.location.line_num, TOKEN.type);
 }

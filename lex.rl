@@ -174,7 +174,7 @@ void lex_setup_next_line(struct lexer *state, char *line, bool is_eof)
 
 bool lex(struct lexer *state, struct token *token)
 {
-    *token = (struct token){0};
+    *token = (struct token){.location = state->location};
     %% write exec;
     /* check for error */
     if (erlang_term_error == state->cs) {

@@ -68,7 +68,7 @@ int main()
         while (lex(&lexer, &token))
             Parse(pParser, token.type, token, print);
     }
-    Parse(pParser, 0, (struct token){0}, print);
+    Parse(pParser, 0, (struct token){.type = 0, .location = lexer.location}, print);
     free(line);
     ParseFree(pParser, free);
 }
