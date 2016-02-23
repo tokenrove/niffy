@@ -57,8 +57,10 @@ static bool grow(struct atom_ptr_map *m)
         next = m->avail * 2;
     void *old = m->entries;
     m->entries = calloc(next, sizeof(*m->entries));
-    if (NULL == m->entries)
+    if (NULL == m->entries) {
+        m->entries = old;
         return false;
+    }
     m->avail = next;
     for (size_t i = 0; i < original_size; ++i) {
         struct atom_ptr_pair p = m->entries[i];
@@ -104,4 +106,20 @@ void *map_lookup(struct atom_ptr_map *m, atom k)
     if (m->entries[h].k == k)
         return m->entries[h].v;
     return NULL;
+}
+
+
+void map_destroy(struct atom_ptr_map *m)
+{
+    free(m->entries);
+    m->entries = NULL;
+    m->avail = 0;
+}
+
+
+void map_iter(struct atom_ptr_map *m, void (*f)(struct atom_ptr_pair))
+{
+    for (size_t i = 0; i < m->avail; ++i)
+        if (m->entries[i].k)
+            f(m->entries[i]);
 }

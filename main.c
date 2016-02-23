@@ -44,9 +44,9 @@ static term load_nif(ErlNifEnv *env, int argc, const term argv[])
 /* such bifs.  wow. */
 static void construct_erlang_env(void)
 {
-    struct enif_environment_t *e = malloc(sizeof(*e));
+    struct enif_environment_t *e = calloc(1, sizeof(*e));
     assert(e);
-    struct enif_entry_t *entry = malloc(sizeof(*entry));
+    struct enif_entry_t *entry = calloc(1, sizeof(*entry));
     assert(entry);
     *entry = (struct enif_entry_t){
         .name = "erlang"
@@ -179,13 +179,11 @@ int main(int argc, char **argv)
 
     int n_sos = argc-optind;
     assert(n_sos > 0);
-    struct enif_environment_t so[n_sos];
-    memset(so, 0, n_sos * sizeof(*so));
 
     construct_erlang_env();
 
     for (int so_idx = 0; so_idx < n_sos && optind < argc; ++so_idx, ++optind) {
-        struct enif_environment_t *s = &so[so_idx];
+        struct enif_environment_t *s = malloc(sizeof(*s));
         s->path = argv[optind];
 
         s->dl_handle = dlopen(s->path, rtld_mode);
@@ -242,7 +240,17 @@ int main(int argc, char **argv)
     free(line);
     ParseFree(pParser, free);
 
-    for (int so_idx = 0; so_idx < n_sos; ++so_idx)
-        dlclose(so[so_idx].dl_handle);
+    void free_fn_v(struct atom_ptr_pair p) { free(p.v); }
+    void free_mp_v(struct atom_ptr_pair p) {
+        struct enif_environment_t *e = p.v;
+        map_iter(&e->fns, free_fn_v);
+        map_destroy(&e->fns);
+        if (e->dl_handle)
+            dlclose(e->dl_handle);
+        /* enif_free_env(e); */
+    }
+    map_iter(&modules, free_mp_v);
+    map_destroy(&modules);
+    enif_free_env(NULL);
     return 0;
 }

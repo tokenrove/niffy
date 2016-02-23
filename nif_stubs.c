@@ -965,11 +965,17 @@ ErlNifEnv *enif_alloc_env(void)
 
 void enif_free_env(ErlNifEnv *env)
 {
+    bool global_p = false;
+    if (!env) {
+        env = &global;
+        global_p = true;
+    }
     for (struct alloc *ap = env->allocations; ap; ap = ap->next) {
         free(ap->p);
         ap->p = NULL;
     }
-    free(env);
+    if (!global_p)
+        free(env);
 }
 
 
