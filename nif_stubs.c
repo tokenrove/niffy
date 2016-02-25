@@ -58,23 +58,32 @@ struct flonum {
 
 static struct enif_environment_t global;
 
-__attribute__((alloc_size(2), malloc))
-static void *alloc(ErlNifEnv *env, size_t size)
+static bool track_freeable_pointer(struct enif_environment_t *env, void *p)
 {
-    void *p = malloc(size);
-    if (p == NULL)
-        return NULL;
     struct alloc *cell = malloc(sizeof(*cell));
-    if (cell == NULL) {
-        free(p);
-        return NULL;
-    }
+    if (cell == NULL)
+        return false;
+
     if (!env) env = &global;
     *cell = (struct alloc){
         .p = p,
         .next = env->allocations
     };
     env->allocations = cell;
+    return true;
+}
+
+
+__attribute__((alloc_size(2), malloc))
+static void *alloc(ErlNifEnv *env, size_t size)
+{
+    void *p = malloc(size);
+    if (p == NULL)
+        return NULL;
+    if (!track_freeable_pointer(env, p)) {
+        free(p);
+        return NULL;
+    }
     return p;
 }
 
@@ -764,6 +773,8 @@ void enif_release_resource(void *UNUSED)
 
 term enif_make_resource(ErlNifEnv *env, void *obj)
 {
+    if (!track_freeable_pointer(env, obj))
+        abort();
     term *p = alloc(env, sizeof(*p) + sizeof(obj));
     *p = TAG_HEADER_EXTERNAL_REF;
     void **q = (void **)(p+1);

@@ -183,7 +183,7 @@ int main(int argc, char **argv)
     construct_erlang_env();
 
     for (int so_idx = 0; so_idx < n_sos && optind < argc; ++so_idx, ++optind) {
-        struct enif_environment_t *s = malloc(sizeof(*s));
+        struct enif_environment_t *s = calloc(1, sizeof(*s));
         s->path = argv[optind];
 
         s->dl_handle = dlopen(s->path, rtld_mode);
