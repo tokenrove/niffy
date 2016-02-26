@@ -131,5 +131,11 @@ strings(S) ::= STRING(H) strings(T). {
 }
 
 %syntax_error {
-    fprintf(stderr, "%d: syntax error (token %d)\n", TOKEN.location.line_num, TOKEN.type);
+    fprintf(stderr, "%d: syntax error (", TOKEN.location.line_num);
+    pretty_print_token(stderr, &TOKEN);
+    fprintf(stderr, ")\n");
+}
+
+%stack_overflow {
+    fprintf(stderr, "parser stack overflow\n");
 }
