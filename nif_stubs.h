@@ -18,7 +18,7 @@ struct alloc {
  * trailing _t, and should be a typedef). */
 struct enif_environment_t {
     void *dl_handle;
-    char *path;
+    const char *path;
     /* The following items are non-NULL only if this SO is a NIF. */
     ErlNifEntry *entry;
     void *priv_data;

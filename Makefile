@@ -10,15 +10,15 @@ RAGELFLAGS ?= -G2
 LEMON ?= lemon
 PROVEFLAGS ?=
 
-NIFFY_OBJS = main.o nif_stubs.o lex.o parse.o atom.o str.o variable.o map.o
+NIFFY_OBJS = niffy.o nif_stubs.o lex.o parse.o atom.o str.o variable.o map.o
 OBJS = $(NIFFY_OBJS)
 GENERATED = lex.c parse.c parse.h
 
 all: niffy lex_test parse_test
 
-$(NIFFY_OBJS): parse.h
+main.c $(NIFFY_OBJS): parse.h
 
-niffy: $(NIFFY_OBJS) | parse.h
+niffy: main.o $(NIFFY_OBJS) | parse.h
 	$(CC) $(CFLAGS) -o niffy $^ $(LDFLAGS)
 
 lex_test: lex.o atom.o str.o | parse.h
