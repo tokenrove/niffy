@@ -223,7 +223,6 @@ void pretty_print_argument_list(FILE *out, const term *p)
 }
 
 
-
 void pretty_print_term(FILE *out, const term *p)
 {
     term t = *p;
@@ -370,6 +369,12 @@ term enif_make_int(ErlNifEnv *UNUSED, int i)
 
 
 term enif_make_uint(ErlNifEnv *UNUSED, unsigned i)
+{
+    return make_small(i);
+}
+
+
+term enif_make_long(ErlNifEnv *UNUSED, long i)
 {
     return make_small(i);
 }
@@ -718,6 +723,27 @@ term enif_make_binary(ErlNifEnv *env, ErlNifBinary *bin)
 }
 
 
+term enif_make_sub_binary(ErlNifEnv *env, term bin_term, size_t pos, size_t size)
+{
+    /* XXX shouldn't allocate */
+    term *q = unbox(bin_term);
+    term *p = alloc(env, sizeof(*p) + size);
+    memcpy(p+1, ((uint8_t *)(q+1))+pos, size);
+    p[0] = HEAP_BIN_TAG(size);
+    return box(p);
+}
+
+
+unsigned char *enif_make_new_binary(ErlNifEnv *env, size_t size, term *termp)
+{
+    /* XXX */
+    term *p = alloc(env, sizeof(*p) + size);
+    p[0] = HEAP_BIN_TAG(size);
+    if (termp) *termp = box(p);
+    return p+1;
+}
+
+
 int enif_inspect_binary(ErlNifEnv *UNUSED, term t, ErlNifBinary *bin)
 {
     if (TAG_PRIMARY_BOXED != (t & TAG_PRIMARY))
@@ -786,7 +812,7 @@ void *enif_alloc_resource(ErlNifResourceType *UNUSED, size_t size)
 
 void enif_release_resource(void *UNUSED)
 {
-    /* XXX */
+    /* XXX We don't free the resource here, because you're supposed to have tracked it with enif_make_resource; however, it would behoove us to still have  */
 }
 
 
@@ -1078,4 +1104,11 @@ int enif_map_iterator_get_pair(ErlNifEnv *UNUSED,
                                term *UNUSED)
 {
     abort();
+}
+
+
+int enif_consume_timeslice(ErlNifEnv *env, int percent)
+{
+    /* XXX should log */
+    return 0;
 }
