@@ -2,7 +2,7 @@
  *
  * This is based on lib/stdlib/src/erl_parse.yrl from OTP, circa late
  * 2015.  Beware!  That grammar is right-recursive, and lemon's stack
- * is limited.
+ * is limited.  This grammar has been converted to use left-recursion.
  *
  * (In fact, that grammar should not be right-recursive; it's easy to
  * construct a relatively small file that causes erl_parse to consume
@@ -29,7 +29,7 @@
 
 top ::= statements.
 
-statements ::= statement statements.
+statements ::= statements statement.
 statements ::= .
 
 %type statement {struct statement}
@@ -45,7 +45,7 @@ statement(S) ::= VARIABLE(V) EQUALS terms(T) DOT.
     S.type = AST_ST_V_OF_TERM;
     S.variable = V.atom_value;
     S.call = (struct function_call){
-        .args = T
+        .args = nreverse_list(T)
     };
     cb(&S);
   }
@@ -70,24 +70,22 @@ function_call(C) ::= ATOM(F) argument_list(A).
   }
 
 argument_list(A) ::= LPAREN RPAREN. { A = enif_make_list(NULL, 0); }
-argument_list(A) ::= LPAREN terms(T) RPAREN. { A = T; }
+argument_list(A) ::= LPAREN terms(T) RPAREN. { A = nreverse_list(T); }
 
-terms(T) ::= term(A) COMMA terms(D). { T = enif_make_list_cell(NULL, A, D); }
+terms(T) ::= terms(A) COMMA term(D). { T = enif_make_list_cell(NULL, D, A); }
 terms(T) ::= term(A). { T = enif_make_list_cell(NULL, A, nil); }
 
 list(L) ::= LBRACKET RBRACKET. { L = nil; }
-list(L) ::= LBRACKET term(A) tail(D). { L = enif_make_list_cell(NULL, A, D); }
-tail(T) ::= RBRACKET. { T = nil; }
-tail(T) ::= PIPE term(A) RBRACKET. { T = A; }
-tail(T) ::= COMMA term(A) tail(D). { T = enif_make_list_cell(NULL, A, D); }
+list(L) ::= LBRACKET terms(A) RBRACKET. { L = nreverse_list(A); }
+list(L) ::= LBRACKET terms(A) PIPE term(T) RBRACKET. { L = nreverse_list(enif_make_list_cell(NULL, A, T)); }
 
 binary(B) ::= LBIN RBIN. {
     B = enif_make_binary(NULL, &(ErlNifBinary){.size = 0, .data = NULL});
 }
-binary(B) ::= LBIN bin_elts(Es) RBIN. { B = iolist_to_binary(Es); }
+binary(B) ::= LBIN bin_elts(Es) RBIN. { B = iolist_to_binary(nreverse_list(Es)); }
 
+bin_elts(E) ::= bin_elts(Hs) COMMA bin_elt(T). { E = enif_make_list_cell(NULL, T, Hs); }
 bin_elts(E) ::= bin_elt(H). { E = enif_make_list(NULL, 1, H); }
-bin_elts(E) ::= bin_elt(H) COMMA bin_elts(T). { E = enif_make_list_cell(NULL, H, T); }
 
 /* we could read a specific subset of terms here, and have a better
 * system for concatenating them. */
@@ -111,7 +109,7 @@ bit_type ::= ATOM.
 bit_type ::= ATOM COLON INTEGER.
 
 tuple(T) ::= LBRACE RBRACE. { T = enif_make_tuple(NULL, 0); }
-tuple(T) ::= LBRACE terms(L) RBRACE. { T = tuple_of_list(NULL, L); }
+tuple(T) ::= LBRACE terms(L) RBRACE. { T = tuple_of_list(NULL, nreverse_list(L)); }
 
 term(T) ::= atomic(A). { T = A; }
 term(T) ::= tuple(A). { T = A; }
@@ -129,8 +127,9 @@ strings(S) ::= STRING(T). {
     S = enif_make_string_len(NULL, T.string_value->data, T.string_value->len, ERL_NIF_LATIN1);
     destroy_token(&T);
 }
-strings(S) ::= STRING(H) strings(T). {
-    S = enif_make_string_len(NULL, H.string_value->data, H.string_value->len, ERL_NIF_LATIN1);
+strings(S) ::= strings(T) STRING(H). {
+    S = T;
+    T = enif_make_string_len(NULL, H.string_value->data, H.string_value->len, ERL_NIF_LATIN1);
     destroy_token(&H);
     assert(nconc(S, T));
 }

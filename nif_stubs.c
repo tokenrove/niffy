@@ -296,6 +296,25 @@ bool nconc(term a, term b)
 }
 
 
+term nreverse_list(term head)
+{
+    term new = NIL;
+    int max_len = MAX_LIST_LENGTH;
+    do {
+        if (head == NIL)
+            return new;
+        if (TAG_PRIMARY_LIST != (head & TAG_PRIMARY))
+            abort();
+        term *p = unbox(head);
+        term next = CDR(p);
+        CDR(p) = new;
+        new = head;
+        head = next;
+    } while (--max_len > 0);
+    abort();
+}
+
+
 static bool inner_iolist_to_binary(struct str **acc, term t)
 {
     while (NIL != t) {
