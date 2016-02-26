@@ -96,6 +96,7 @@ void niffy_handle_statement(struct statement *st)
     default:
     case AST_ST_NOP:
         break;
+
     case AST_ST_V_OF_TERM:
         enif_get_list_cell(NULL, st->call.args, &result, NULL);
         assert(variable_assign(st->variable, result));
@@ -105,8 +106,15 @@ void niffy_handle_statement(struct statement *st)
         result = call(&st->call);
         assert(variable_assign(st->variable, result));
         break;
+
     case AST_ST_MFA:
         result = call(&st->call);
+        pretty_print_term(stdout, &result);
+        putchar('\n');
+        break;
+
+    case AST_ST_VAR:
+        result = variable_lookup(st->variable);
         pretty_print_term(stdout, &result);
         putchar('\n');
         break;

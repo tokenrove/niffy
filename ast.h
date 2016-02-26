@@ -15,7 +15,8 @@ struct statement {
         AST_ST_NOP,
         AST_ST_V_OF_TERM,
         AST_ST_V_OF_MFA,
-        AST_ST_MFA
+        AST_ST_MFA,
+        AST_ST_VAR
     } type;
     atom variable;
     struct function_call call;

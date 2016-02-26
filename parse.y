@@ -55,6 +55,12 @@ statement(S) ::= function_call(C) DOT.
     S.call = C;
     cb(&S);
   }
+statement(S) ::= VARIABLE(V) DOT.
+  {
+    S.type = AST_ST_VAR;
+    S.variable = V.atom_value;
+    cb(&S);
+  }
 
 %type function_call {struct function_call}
 function_call(C) ::= ATOM(M) COLON ATOM(F) argument_list(A).

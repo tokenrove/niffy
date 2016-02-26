@@ -47,6 +47,11 @@ static void print(struct statement *st)
         pretty_print_mfa(&st->call);
         puts(".");
         break;
+
+    case AST_ST_VAR:
+        str_print(stdout, symbol_name(st->variable));
+        puts(".");
+        break;
     }
 }
 
