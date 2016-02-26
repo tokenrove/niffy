@@ -83,7 +83,55 @@ loaded.  Not all of them have to be NIFs.
 
 ### Fuzzing a NIF with afl_fuzz
 
-*TODO*
+Build your NIF with `afl-gcc`:
+
+```
+$ cd my_nif
+$ CC=afl-gcc CXX=afl-g++ rebar co
+```
+
+Build niffy and fuzz_skeleton with `afl-gcc`:
+```
+$ cd niffy
+$ make clean
+$ CC=afl-gcc make
+```
+
+You'll need a binary to run `afl-fuzz` on; you could supply `niffy`
+itself, but you'd primarily be fuzzing niffy's term parser instead of
+your NIF.  To make it easier to focus the fuzzing, there is a program
+provided called `fuzz_skeleton`.
+
+As is, this program reads stdin as bytes of a binary which it binds to
+the variable `Input`, and then reads from a term file specified on the
+command line.  If you're primarily interested in fuzzing your NIF with
+binaries, this may be all you need, and you'd supply a term file like
+the following:
+
+```
+_ = erlang:load_nif(jiffy, []).
+Term = jiffy:nif_decode_init(Input, []).
+jiffy:nif_encode_init(Term, []).
+```
+
+and then run `afl-fuzz` like this:
+
+```
+$ afl-fuzz -i input_samples -o output -- ./fuzz_skeleton ../jiffy/priv/jiffy.so jiffy_template.term
+```
+
+where `input_samples` is a directory containing some small initial
+test cases, and `output` is a directory that will be created to hold
+the results.
+
+However, you probably want more control over the representation fed to
+your NIF, in which case you can modify `fuzz_skeleton.c` to accept
+input as appropriate for your NIF.
+
+**Warning:** If your NIF does not load without the `--lazy` option to
+niffy, you must set `LD_BIND_LAZY=1` in your environment; otherwise,
+afl-fuzz sets `LD_BIND_NOW` and your fuzzer will mysteriously abort on
+all your test cases if the NIF uses any unimplemented functionality.
 
 ## Alternatives
 

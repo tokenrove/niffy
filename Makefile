@@ -14,12 +14,15 @@ NIFFY_OBJS = niffy.o nif_stubs.o lex.o parse.o atom.o str.o variable.o map.o
 OBJS = $(NIFFY_OBJS)
 GENERATED = lex.c parse.c parse.h
 
-all: niffy lex_test parse_test
+all: niffy lex_test parse_test fuzz_skeleton
 
-main.c $(NIFFY_OBJS): parse.h
+main.c fuzz_skeleton.c $(NIFFY_OBJS): parse.h
 
 niffy: main.o $(NIFFY_OBJS) | parse.h
 	$(CC) $(CFLAGS) -o niffy $^ $(LDFLAGS)
+
+fuzz_skeleton: fuzz_skeleton.o $(NIFFY_OBJS) | parse.h
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 lex_test: lex.o atom.o str.o | parse.h
 
