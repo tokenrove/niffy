@@ -1,5 +1,7 @@
 /*
  * Lexer for Erlang terms.
+ *
+ * Primary reference: OTP's lib/stdlib/src/erl_scan.erl
  */
 
 #include <assert.h>

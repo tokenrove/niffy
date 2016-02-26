@@ -1,4 +1,13 @@
-/* -*- lemon -*- */
+/* -*- lemon -*-
+ *
+ * This is based on lib/stdlib/src/erl_parse.yrl from OTP, circa late
+ * 2015.  Beware!  That grammar is right-recursive, and lemon's stack
+ * is limited.
+ *
+ * (In fact, that grammar should not be right-recursive; it's easy to
+ * construct a relatively small file that causes erl_parse to consume
+ * all memory and die.)
+ */
 
 %include {
   #include <assert.h>
