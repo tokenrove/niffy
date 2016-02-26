@@ -147,6 +147,7 @@ static void pretty_print_tuple(FILE *out, const term *p)
 
 static bool is_printable_list(term t)
 {
+    if (NIL == t) return false;
     while (NIL != t) {
         if (TAG_PRIMARY_LIST != (t & TAG_PRIMARY))
             return false;
@@ -169,6 +170,7 @@ static void print_list_as_string(FILE *out, term t)
         term *p = unbox(t);
         int c;
         assert(enif_get_int(NULL, CAR(p), &c));
+        if ('"' == c) fputc('\\', out);
         fputc(c, out);
         t = CDR(p);
     }
@@ -223,6 +225,45 @@ void pretty_print_argument_list(FILE *out, const term *p)
 }
 
 
+static bool is_printable_binary(uint8_t *s, size_t len)
+{
+    if (0 == len) return false;
+    for (size_t i = 0; i < len; ++i)
+        if (!isgraph(s[i]))
+            return false;
+    return true;
+}
+
+
+static void print_binary_as_string(FILE *out, uint8_t *s, size_t len)
+{
+    fputc('"', out);
+    for (size_t i = 0; i < len; ++i) {
+        if ('"' == s[i]) fputc('\\', out);
+        fputc(s[i], out);
+    }
+    fputc('"', out);
+}
+
+
+void pretty_print_binary(FILE *out, const term *p)
+{
+    unsigned size = p[0] >> TAG_HEADER_SIZE;
+    uint8_t *q = (uint8_t *)(p+1);
+
+    fputs("<<", out);
+    if (is_printable_binary(q, size))
+        print_binary_as_string(out, q, size);
+    else {
+        if (size > 0)
+            fprintf(out, "%u", q[0]);
+        for (unsigned i = 1; i < size; ++i)
+            fprintf(out, ",%u", q[i]);
+    }
+    fputs(">>", out);
+}
+
+
 void pretty_print_term(FILE *out, const term *p)
 {
     term t = *p;
@@ -255,16 +296,7 @@ void pretty_print_term(FILE *out, const term *p)
         }
         break;
     case TERM_BIN:
-        {
-            unsigned size = p[0] >> TAG_HEADER_SIZE;
-            uint8_t *q = (uint8_t *)(p+1);
-            fputs("<<", out);
-            if (size > 0)
-                fprintf(out, "%u", q[0]);
-            for (unsigned i = 1; i < size; ++i)
-                fprintf(out, ",%u", q[i]);
-            fputs(">>", out);
-        }
+        pretty_print_binary(out, p);
         break;
     case TERM_EXTREF:
         fprintf(out, "<exref>");
