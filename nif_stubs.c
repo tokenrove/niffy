@@ -132,6 +132,15 @@ term_type type_of_term(const term t)
 }
 
 
+term_type type_of_boxed_term(const term t)
+{
+    if (type_of_term(t) != TERM_BOXED)
+        return TERM_THE_NON_VALUE;
+    term *p = unbox(t);
+    return type_of_term(*p);
+}
+
+
 static void pretty_print_tuple(FILE *out, const term *p)
 {
     unsigned count = (*p) >> TAG_HEADER_SIZE;
@@ -535,13 +544,13 @@ int enif_is_atom(ErlNifEnv *UNUSED, term t)
 
 int enif_is_binary(ErlNifEnv *UNUSED, term t)
 {
-    return type_of_term(t) == TERM_BIN;
+    return type_of_boxed_term(t) == TERM_BIN;
 }
 
 
 int enif_is_tuple(ErlNifEnv *UNUSED, term t)
 {
-    return type_of_term(t) == TERM_TUPLE;
+    return type_of_boxed_term(t) == TERM_TUPLE;
 }
 
 
@@ -567,7 +576,7 @@ int enif_is_number(ErlNifEnv *UNUSED, term t)
 
 int enif_is_ref(ErlNifEnv *UNUSED, term t)
 {
-    return type_of_term(t) == TERM_EXTREF;
+    return type_of_boxed_term(t) == TERM_EXTREF;
 }
 
 
@@ -780,7 +789,7 @@ unsigned char *enif_make_new_binary(ErlNifEnv *env, size_t size, term *termp)
     term *p = alloc(env, sizeof(*p) + size);
     p[0] = HEAP_BIN_TAG(size);
     if (termp) *termp = box(p);
-    return p+1;
+    return (unsigned char *)(p+1);
 }
 
 
