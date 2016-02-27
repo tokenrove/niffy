@@ -145,6 +145,14 @@ static void pretty_print_tuple(FILE *out, const term *p)
 }
 
 
+/* Beware: these functions are implemented as table lookups, and so
+ * large values of c can cause segfaults. */
+static inline bool is_printable_char(int c)
+{
+    return isgraph(c&255) || isspace(c&255);
+}
+
+
 static bool is_printable_list(term t)
 {
     if (NIL == t) return false;
@@ -154,7 +162,7 @@ static bool is_printable_list(term t)
         term *p = unbox(t);
         int c;
         if (!enif_get_int(NULL, CAR(p), &c) ||
-            !isgraph(c))
+            !is_printable_char(c))
             return false;
         t = CDR(p);
     }
@@ -229,7 +237,7 @@ static bool is_printable_binary(uint8_t *s, size_t len)
 {
     if (0 == len) return false;
     for (size_t i = 0; i < len; ++i)
-        if (!isgraph(s[i]))
+        if (!is_printable_char(s[i]))
             return false;
     return true;
 }
@@ -292,7 +300,7 @@ void pretty_print_term(FILE *out, const term *p)
     case TERM_FLOAT:
         {
             struct flonum *fn = (struct flonum *)p;
-            fprintf(out, "%g", fn->flonum);
+            fprintf(out, "%.15g", fn->flonum);
         }
         break;
     case TERM_BIN:
