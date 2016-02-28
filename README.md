@@ -44,6 +44,7 @@ of its functions under valgrind:
 ```
 $ valgrind niffy nif.so <<EOF
 V = nif:foo(42).
+V.
 nif:bar("abc").
 nif:baz(V).
 EOF
@@ -61,7 +62,7 @@ you loaded, `Function` is some function it defines, and the
 You can assign the return value of a call to a variable (pattern
 matching is not supported), and use that variable in subsequent calls.
 If no variable is supplied, niffy will print the return value of each
-call on stdout.
+call on stdout.  A variable alone will print its bound value.
 
 It operates on a line at a time so you can interact with it to some
 extent, but keep in mind that function invocations are terminated by a
