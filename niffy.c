@@ -16,6 +16,7 @@
 
 
 static struct atom_ptr_map modules;
+static atom default_module;
 
 struct fptr {
     unsigned arity;
@@ -24,12 +25,25 @@ struct fptr {
 };
 
 
+static struct enif_environment_t *find_module_or_die(atom module)
+{
+    struct enif_environment_t *m = map_lookup(&modules, module);
+    if (NULL == m) {
+        fputs("no such module: ", stderr);
+        pretty_print_atom(stderr, module);
+        fputc('\n', stderr);
+        exit(1);
+    }
+    return m;
+}
+
+
 static term load_nif(ErlNifEnv *env, int argc, const term argv[])
 {
     if (2 != argc)
         return enif_make_badarg(env);
 
-    struct enif_environment_t *m = map_lookup(&modules, atom_untagged(argv[0]));
+    struct enif_environment_t *m = find_module_or_die(atom_untagged(argv[0]));
     assert(NULL != m);
     return enif_make_int(NULL, m->entry->load(m, &m->priv_data, argv[1]));
 }
@@ -59,7 +73,8 @@ void niffy_construct_erlang_env(void)
 
 static term call(struct function_call *call)
 {
-    struct enif_environment_t *m = map_lookup(&modules, call->module);
+    atom module = call->module ? call->module : default_module;
+    struct enif_environment_t *m = find_module_or_die(module);
     assert(NULL != m);
     term tuple = tuple_of_list(NULL, call->args);
     unsigned arity;
@@ -80,9 +95,11 @@ static term call(struct function_call *call)
         f = f->next;
     }
     fprintf(stderr, "no match for function ");
+    pretty_print_atom(stderr, module);
+    fputc(':', stderr);
     pretty_print_atom(stderr, call->function);
     fprintf(stderr, "/%u\n", arity);
-    abort();
+    exit(1);
 }
 
 
@@ -139,7 +156,10 @@ bool niffy_load_so(const char *path, int rtld_mode, int verbosity)
         return true;
     }
     s->entry = init();
-    assert(map_insert(&modules, intern(str_dup_cstr(s->entry->name)), s));
+    atom module_atom = intern(str_dup_cstr(s->entry->name));
+    assert(map_insert(&modules, module_atom, s));
+    if (!default_module)
+        default_module = module_atom;
 
     if (verbosity > 0)
         printf("%s: %s %d.%d\n", s->path, s->entry->name, s->entry->major, s->entry->minor);

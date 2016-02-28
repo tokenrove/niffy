@@ -161,7 +161,9 @@ static void pretty_print_quoted_atom(FILE *out, const struct str *name)
 void pretty_print_atom(FILE *out, atom a)
 {
     const struct str *name = symbol_name(a);
-    if (atom_must_be_quoted_p(name))
+    if (!name)
+        fputs("(null)", out);
+    else if (atom_must_be_quoted_p(name))
         pretty_print_quoted_atom(out, name);
     else
         str_print(out, name);
