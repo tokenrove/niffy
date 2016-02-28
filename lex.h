@@ -39,7 +39,7 @@ struct lexer {                  /* private */
 #include <stdbool.h>
 
 extern void lex_init(struct lexer *);
-extern void lex_setup_next_line(struct lexer *, char *, bool);
+extern void lex_setup_next_line(struct lexer *, char *, size_t, bool);
 extern bool lex(struct lexer *, struct token *);
 extern void destroy_token(struct token *);
 extern bool pretty_print_token(void *, struct token *);

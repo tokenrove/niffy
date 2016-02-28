@@ -2,9 +2,9 @@
 
 set -eu
 
-echo 1..6
+echo 1..8
 for i in t/parse-*.in; do
-    ./parse_test < $i | diff -u - $i.out | while read line; do
+    ./parse_test < $i 2>/dev/null | diff -u - $i.out | while read line; do
         echo "# $line"
     done
     if (( (PIPESTATUS[0] | PIPESTATUS[1]) == 0 )); then

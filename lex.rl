@@ -166,10 +166,10 @@ void lex_init(struct lexer *state)
 }
 
 
-void lex_setup_next_line(struct lexer *state, char *line, bool is_eof)
+void lex_setup_next_line(struct lexer *state, char *line, size_t len, bool is_eof)
 {
     state->p = line;
-    state->pe = line + strlen(line);
+    state->pe = line + len;
     state->eof = is_eof ? state->pe : NULL;
 }
 

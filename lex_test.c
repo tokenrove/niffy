@@ -15,8 +15,9 @@ int main(void)
     struct lexer lexer;
     lex_init(&lexer);
 
-    while (-1 != getline(&line, &line_len, in)) {
-        lex_setup_next_line(&lexer, line, feof(in));
+    ssize_t nread = 0;
+    while (-1 != (nread = getline(&line, &line_len, in))) {
+        lex_setup_next_line(&lexer, line, nread, feof(in));
         struct token token;
 
         while (lex(&lexer, &token)) {
