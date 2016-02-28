@@ -19,8 +19,10 @@ int int_of_digit(char c, int radix)
         v = c-'0';
     else if ((c|0x20) >= 'a' && (c|0x20) <= 'z')
         v = 10+(c|0x20)-'a';
-    if (v < 0 || v >= radix)
-        abort();
+    if (v < 0 || v >= radix) {
+        fprintf(stderr, "bad digit %d for radix %d\n", v, radix);
+        exit(1);
+    }
     return v;
 }
 
