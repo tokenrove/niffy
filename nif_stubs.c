@@ -327,20 +327,23 @@ void pretty_print_term(FILE *out, const term *p)
 }
 
 
-bool nconc(term a, term b)
+term nconc(term a, term b)
 {
+    term head = a;
+    if (NIL == head)
+        return b;
     int max_len = MAX_LIST_LENGTH;
     do {
         if (TAG_PRIMARY_LIST != (a & TAG_PRIMARY))
-            return false;
+            abort();
         term *p = unbox(a);
         if (NIL == CDR(p)) {
             CDR(p) = b;
-            return true;
+            return head;
         }
         a = CDR(p);
     } while (--max_len > 0);
-    return 0;
+    abort();
 }
 
 

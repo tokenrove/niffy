@@ -46,7 +46,7 @@ typedef enum {
 extern void pretty_print_term(FILE *, const term *);
 void pretty_print_argument_list(FILE *, const term *);
 term tuple_of_list(ErlNifEnv *, term);
-extern bool nconc(term, term);
+extern term nconc(term, term);
 extern term nreverse_list(term);
 extern term iolist_to_binary(term);
 extern term_type type_of_term(const term);

@@ -2,7 +2,7 @@
 
 set -eu
 
-echo 1..8
+echo 1..9
 for i in t/parse-*.in; do
     ./parse_test < $i 2>/dev/null | diff -u - $i.out | while read line; do
         echo "# $line"

@@ -137,7 +137,7 @@ strings(S) ::= strings(T) STRING(H). {
     S = T;
     T = enif_make_string_len(NULL, H.string_value->data, H.string_value->len, ERL_NIF_LATIN1);
     destroy_token(&H);
-    assert(nconc(S, T));
+    S = nconc(S, T);
 }
 
 %parse_failure {
