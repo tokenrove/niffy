@@ -2,7 +2,7 @@
 
 set -eu
 
-echo 1..5
+echo 1..7
 for i in t/term_lex-*.in; do
     ./lex_test < $i | diff -u - $i.out | while read line; do
         echo "# $line"

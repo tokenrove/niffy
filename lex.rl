@@ -171,15 +171,21 @@ void lex_init(struct lexer *state)
 void lex_setup_next_line(struct lexer *state, char *line, size_t len, bool is_eof)
 {
     state->p = line;
-    state->pe = line + len;
+    state->pe = state->p + len;
     state->eof = is_eof ? state->pe : NULL;
 }
 
 
 bool lex(struct lexer *state, struct token *token)
 {
-    *token = (struct token){.location = state->location};
+    token->type = TOK_NOTHING;
+    token->location = state->location;
+
+    if (state->p >= state->pe)
+        return false;
+
     %% write exec;
+
     /* check for error */
     if (erlang_term_error == state->cs) {
         fprintf(stderr, "%d: oops!\n", state->location.line_num);
@@ -188,7 +194,7 @@ bool lex(struct lexer *state, struct token *token)
 
     /* p == pe when we need more data; we could be in the middle of a
      * token, though. */
-    return state->p < state->pe;
+    return (state->p < state->pe || state->pe == state->eof);
 }
 
 
