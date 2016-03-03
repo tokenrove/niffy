@@ -71,6 +71,22 @@ void niffy_construct_erlang_env(void)
 }
 
 
+static struct fptr *find_fn_or_die(struct enif_environment_t *m, atom fn, unsigned arity)
+{
+    struct fptr *f = map_lookup(&m->fns, fn);
+    while (f) {
+        if (arity == f->arity)
+            return f;
+        f = f->next;
+    }
+    fprintf(stderr, "no match for function %s:", m->entry->name);
+    pretty_print_atom(stderr, fn);
+    fprintf(stderr, "/%u\n", arity);
+    exit(1);
+    return NULL;                /* unreachable */
+}
+
+
 static term call(struct function_call *call)
 {
     atom module = call->module ? call->module : default_module;
@@ -80,26 +96,15 @@ static term call(struct function_call *call)
     unsigned arity;
     const term *p;
     assert(enif_get_tuple(NULL, tuple, (int *)&arity, &p));
-    struct fptr *f = map_lookup(&m->fns, call->function);
-    while (f) {
-        if (arity == f->arity) {
-            term result = f->fptr(m, arity, p);
-            if (m->exception) {
-                fprintf(stderr, "raised exception ");
-                pretty_print_term(stderr, &m->exception);
-                fputs("", stderr);
-                /* continuing cowardly */
-            }
-            return result;
-        }
-        f = f->next;
+    struct fptr *f = find_fn_or_die(m, call->function, arity);
+    term result = f->fptr(m, arity, p);
+    if (m->exception) {
+        fprintf(stderr, "raised exception ");
+        pretty_print_term(stderr, &m->exception);
+        fputc('\n', stderr);
+        /* continuing cowardly */
     }
-    fprintf(stderr, "no match for function ");
-    pretty_print_atom(stderr, module);
-    fputc(':', stderr);
-    pretty_print_atom(stderr, call->function);
-    fprintf(stderr, "/%u\n", arity);
-    exit(1);
+    return result;
 }
 
 
