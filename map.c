@@ -1,4 +1,4 @@
-/* Trivial power-of-two choices hash table for int32 -> void*
+/* Trivial two-choice hash table for int32 -> void*
  */
 #include <assert.h>
 #include <stdint.h>
@@ -32,17 +32,19 @@ static hash hash_2(atom a, uint32_t m)
 
 static bool insert(struct atom_ptr_map *m, struct atom_ptr_pair p)
 {
-    hash h = hash_1(p.k, m->avail);
-    if (m->entries[h].k == 0) {
-        m->entries[h] = p;
-        return true;
-    }
-    h = hash_2(p.k, m->avail);
-    if (m->entries[h].k == 0) {
-        m->entries[h] = p;
-        return true;
-    }
-    return false;
+    hash h1 = hash_1(p.k, m->avail), h2 = hash_2(p.k, m->avail), h;
+    if (m->entries[h1].k == p.k)
+        h = h1;
+    else if (m->entries[h2].k == p.k)
+        h = h2;
+    else if (m->entries[h1].k == 0)
+        h = h1;
+    else if (m->entries[h2].k == 0)
+        h = h2;
+    else
+        return false;
+    m->entries[h] = p;
+    return true;
 }
 
 
