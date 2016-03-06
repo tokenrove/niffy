@@ -896,7 +896,7 @@ int enif_get_resource(ErlNifEnv *UNUSED, term t, ErlNifResourceType *UNUSED,
 
 term enif_make_badarg(ErlNifEnv *env)
 {
-    env->exception = tagged_atom(intern(str_dup_cstr("badarg")));
+    env->exception = tagged_atom(intern_cstr("badarg"));
     return env->exception;
 }
 

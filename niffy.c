@@ -49,28 +49,6 @@ static term load_nif(ErlNifEnv *env, int argc, const term argv[])
 }
 
 
-/* such bifs.  wow. */
-void niffy_construct_erlang_env(void)
-{
-    struct enif_environment_t *e = calloc(1, sizeof(*e));
-    assert(e);
-    struct enif_entry_t *entry = calloc(1, sizeof(*entry));
-    assert(entry);
-    *entry = (struct enif_entry_t){
-        .name = "erlang"
-    };
-    *e = (struct enif_environment_t){
-        .entry = entry
-    };
-    assert(map_insert(&modules, intern(str_dup_cstr(e->entry->name)), e));
-
-    atom sym = intern(str_dup_cstr("load_nif"));
-    struct fptr *f = malloc(sizeof(*f));
-    *f = (struct fptr){.arity = 2, .fptr = load_nif};
-    map_insert(&e->fns, sym, f);
-}
-
-
 static struct fptr *find_fn_or_die(struct enif_environment_t *m, atom fn, unsigned arity)
 {
     struct fptr *f = map_lookup(&m->fns, fn);
@@ -105,6 +83,35 @@ static term call(struct function_call *call)
         /* continuing cowardly */
     }
     return result;
+}
+
+
+static bool add_fn(struct atom_ptr_map *fm, const char *s, struct fptr fn)
+{
+    atom sym = intern_cstr(s);
+    struct fptr *f = malloc(sizeof(*f));
+    fn.next = map_lookup(fm, sym);
+    *f = fn;
+    return map_insert(fm, sym, f);
+}
+
+
+/* such bifs.  wow. */
+void niffy_construct_erlang_env(void)
+{
+    struct enif_environment_t *e = calloc(1, sizeof(*e));
+    assert(e);
+    struct enif_entry_t *entry = calloc(1, sizeof(*entry));
+    assert(entry);
+    *entry = (struct enif_entry_t){
+        .name = "erlang"
+    };
+    *e = (struct enif_environment_t){
+        .entry = entry
+    };
+    assert(map_insert(&modules, intern_cstr(e->entry->name), e));
+
+    assert(add_fn(&e->fns, "load_nif", (struct fptr){.arity = 2, .fptr = load_nif}));
 }
 
 
@@ -161,7 +168,7 @@ bool niffy_load_so(const char *path, int rtld_mode, int verbosity)
         return true;
     }
     s->entry = init();
-    atom module_atom = intern(str_dup_cstr(s->entry->name));
+    atom module_atom = intern_cstr(s->entry->name);
     assert(map_insert(&modules, module_atom, s));
     if (!default_module)
         default_module = module_atom;
@@ -171,7 +178,7 @@ bool niffy_load_so(const char *path, int rtld_mode, int verbosity)
     for (int i = 0; i < s->entry->num_of_funcs; ++i) {
         if (verbosity > 1)
             printf("  %s/%d\n", s->entry->funcs[i].name, s->entry->funcs[i].arity);
-        atom sym = intern(str_dup_cstr(s->entry->funcs[i].name));
+        atom sym = intern_cstr(s->entry->funcs[i].name);
         struct fptr *f = malloc(sizeof(*f));
         *f = (struct fptr){.arity = s->entry->funcs[i].arity,
                            .fptr = s->entry->funcs[i].fptr,

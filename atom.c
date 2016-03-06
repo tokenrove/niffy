@@ -116,6 +116,12 @@ atom intern(const struct str *name)
 }
 
 
+atom intern_cstr(const char *name)
+{
+    return intern(str_dup_cstr(name));
+}
+
+
 const struct str *symbol_name(atom sym)
 {
     if (sym < 1 || sym > symbol_counter)
