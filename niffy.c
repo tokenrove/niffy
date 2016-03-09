@@ -96,18 +96,17 @@ static bool add_fn(struct atom_ptr_map *fm, const char *s, struct fptr fn)
 }
 
 
+static struct enif_entry_t internal_env_entry = {
+    .name = "erlang"
+};
+
 /* such bifs.  wow. */
 void niffy_construct_erlang_env(void)
 {
     struct enif_environment_t *e = calloc(1, sizeof(*e));
     assert(e);
-    struct enif_entry_t *entry = calloc(1, sizeof(*entry));
-    assert(entry);
-    *entry = (struct enif_entry_t){
-        .name = "erlang"
-    };
     *e = (struct enif_environment_t){
-        .entry = entry
+        .entry = &internal_env_entry
     };
     assert(map_insert(&modules, intern_cstr(e->entry->name), e));
 
@@ -191,14 +190,19 @@ bool niffy_load_so(const char *path, int rtld_mode, int verbosity)
 
 void niffy_destroy_environments(void)
 {
-    void free_fn_v(struct atom_ptr_pair p) { free(p.v); }
+    void free_fn_v(struct atom_ptr_pair p) {
+        for (struct fptr *f = p.v, *g; f; f = g) {
+            g = f->next;
+            free(f);
+        }
+    }
     void free_mp_v(struct atom_ptr_pair p) {
         struct enif_environment_t *e = p.v;
         map_iter(&e->fns, free_fn_v);
         map_destroy(&e->fns);
         if (e->dl_handle)
             dlclose(e->dl_handle);
-        /* enif_free_env(e); */
+        enif_free_env(e);
     }
     map_iter(&modules, free_mp_v);
     map_destroy(&modules);
