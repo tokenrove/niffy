@@ -1,6 +1,6 @@
 sudo: false
 language: erlang
-script: make check INCLUDE='-I${_KERL_ACTIVE_DIR}/usr/include' PROVEFLAGS=-v
+script: make check PROVEFLAGS=-v
 otp_release:
   - 17.5
   - 18.1
@@ -10,3 +10,4 @@ addons:
     packages:
       - ragel
       - lemon
+      - valgrind
