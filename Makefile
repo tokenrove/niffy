@@ -45,7 +45,7 @@ parse.o: parse.c
 	$(LEMON) $<
 
 clean:
-	$(RM) $(OBJS) $(OBJS:.o=.d) $(GENERATED) lex.t niffy
+	$(RM) $(OBJS) $(OBJS:.o=.d) $(GENERATED) lex.t niffy fuzz_skeleton t/leaky_nif.so t/clean_nif.so
 
 check: niffy test_programs
 	prove $(PROVEFLAGS)
