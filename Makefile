@@ -2,6 +2,9 @@
 
 ERTS_INCLUDE_DIR ?= $(shell erl -noshell -s init stop -eval "io:format(\"~s/erts-~s/include/\", [code:root_dir(), erlang:system_info(version)]).")
 
+PREFIX ?= /usr/local
+INSTALL ?= install
+
 CC ?= gcc
 CFLAGS ?= -MMD -std=gnu99 -Wall -Wextra -ggdb -fms-extensions -rdynamic
 CFLAGS := $(CFLAGS) -I$(ERTS_INCLUDE_DIR)
@@ -49,5 +52,8 @@ clean:
 
 check: niffy test_programs
 	prove $(PROVEFLAGS)
+
+install: niffy
+	$(INSTALL) ./niffy $(PREFIX)/bin/niffy
 
 -include $(OBJS:.o=.d)
