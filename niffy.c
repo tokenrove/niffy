@@ -49,6 +49,12 @@ static term load_nif(ErlNifEnv *env, int argc, const term argv[])
 }
 
 
+static term halt(ErlNifEnv *UNUSED, int UNUSED, const term *UNUSED)
+{
+    exit(0);
+}
+
+
 static struct fptr *find_fn_or_die(struct enif_environment_t *m, atom fn, unsigned arity)
 {
     struct fptr *f = map_lookup(&m->fns, fn);
@@ -112,6 +118,7 @@ void niffy_construct_erlang_env(void)
     assert(map_insert(&modules, intern_cstr(e->entry->name), e));
 
     assert(add_fn(&e->fns, "load_nif", (struct fptr){.arity = 2, .fptr = load_nif}));
+    assert(add_fn(&e->fns, "halt", (struct fptr){.arity = 0, .fptr = halt}));
 }
 
 
