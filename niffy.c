@@ -81,6 +81,7 @@ static term call(struct function_call *call)
         pretty_print_term(stderr, &m->exception);
         fputc('\n', stderr);
         /* continuing cowardly */
+        m->exception = 0;
     }
     return result;
 }
