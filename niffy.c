@@ -97,7 +97,7 @@ static bool add_fn(struct atom_ptr_map *fm, const char *s, struct fptr fn)
 
 
 static struct enif_entry_t internal_env_entry = {
-    .name = "erlang"
+    .name = "niffy"
 };
 
 /* such bifs.  wow. */

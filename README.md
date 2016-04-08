@@ -69,9 +69,8 @@ extent, but keep in mind that function invocations are terminated by a
 period.
 
 Note that the NIF's `load` function will not be called unless you
-explicitly call `erlang:load_nif(nif_name, [])`.  (Arbitrary BIFs are
-not supported, only `erlang:load_nif/2`; you don't need to call this
-if your NIF doesn't have a load callback.)
+explicitly call `niffy:load_nif(nif_name, [])`.  (You don't need to
+call this if your NIF doesn't have a load callback.)
 
 ### Multiple NIFs and other libraries
 
@@ -110,7 +109,7 @@ binaries, this may be all you need, and you'd supply a term file like
 the following:
 
 ```
-_ = erlang:load_nif(jiffy, []).
+_ = niffy:load_nif(jiffy, []).
 Term = jiffy:nif_decode_init(Input, []).
 jiffy:nif_encode_init(Term, []).
 ```
