@@ -629,7 +629,7 @@ term enif_make_copy(ErlNifEnv *env, term t)
     case TERM_TUPLE:
         return copy_tuple(env, unbox(t));
     case TERM_CONS:
-        return copy_list(env,unbox(t));
+        return copy_list(env, unbox(t));
     case TERM_BIN:
         return copy_bin(env, unbox(t));
     default:
@@ -1170,7 +1170,7 @@ int enif_map_iterator_get_pair(ErlNifEnv *UNUSED,
 }
 
 
-int enif_consume_timeslice(ErlNifEnv *env, int percent)
+int enif_consume_timeslice(ErlNifEnv *UNUSED, int UNUSED)
 {
     /* XXX should log */
     return 0;
