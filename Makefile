@@ -7,7 +7,7 @@ INSTALL ?= install
 
 CC ?= gcc
 CFLAGS ?= -MMD -std=gnu99 -Wall -Wextra -ggdb -fms-extensions -rdynamic -Wno-missing-field-initializers
-CFLAGS := $(CFLAGS) -I$(ERTS_INCLUDE_DIR)
+CFLAGS := $(CFLAGS) -I$(ERTS_INCLUDE_DIR) $(DEFINES)
 PARSE_CFLAGS := $(CFLAGS) -Wno-unused-variable -Wno-unused-parameter -Wno-sign-compare
 LDFLAGS ?= -ldl
 RAGEL ?= ragel

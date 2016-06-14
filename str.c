@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "overflow.h"
 #include "str.h"
 
 struct str *str_new(size_t len)
@@ -49,7 +50,7 @@ static bool str_grow(struct str **p)
         next = (*p)->avail * 2;
     assert(next > (*p)->avail);
     size_t total;
-    assert(!__builtin_add_overflow(next, sizeof(struct str), &total));
+    assert(!add_overflow(next, sizeof(struct str), &total));
     struct str *q = realloc(*p, total);
     if (q == NULL)
         return false;
@@ -91,7 +92,7 @@ bool str_append_bytes(struct str **p, const char *bytes, size_t len)
         return true;
     }
     size_t total;
-    if (__builtin_add_overflow((*p)->len, len, &total))
+    if (add_overflow((*p)->len, len, &total))
         abort();
     if (total >= (*p)->avail && !str_grow_to(p, total))
         return false;
