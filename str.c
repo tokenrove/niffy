@@ -1,3 +1,11 @@
+/* Naive dynamically-allocated strings
+ *
+ * No attempts to be clever; hopefully your allocator will do an
+ * acceptable job.  Not intended for high-performance or high-safety
+ * applications.
+ */
+
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -39,7 +47,10 @@ static bool str_grow(struct str **p)
         next = (*p)->avail + ((*p)->avail >> 1);
     else if ((*p)->avail >= next)
         next = (*p)->avail * 2;
-    struct str *q = realloc(*p, next + sizeof(struct str));
+    assert(next > (*p)->avail);
+    size_t total;
+    assert(!__builtin_add_overflow(next, sizeof(struct str), &total));
+    struct str *q = realloc(*p, total);
     if (q == NULL)
         return false;
     *p = q;
@@ -52,9 +63,8 @@ bool str_appendch(struct str **p, char c)
 {
     if (NULL == *p)
         *p = str_new(16);
-    if ((*p)->len+1 >= (*p)->avail)
-        if (!str_grow(p))
-            return false;
+    if ((*p)->len+1 >= (*p)->avail && !str_grow(p))
+        return false;
     (*p)->data[(*p)->len++] = c;
     return true;
 }
@@ -64,10 +74,7 @@ bool str_eq(const struct str *a, const struct str *b)
 {
     if (a->len != b->len)
         return false;
-    for (size_t i = 0; i < a->len; ++i)
-        if (a->data[i] != b->data[i])
-            return false;
-    return true;
+    return 0 == memcmp(a->data, b->data, a->len);
 }
 
 
