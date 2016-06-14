@@ -59,6 +59,19 @@ static bool str_grow(struct str **p)
 }
 
 
+static bool str_grow_to(struct str **p, size_t total)
+{
+    if ((*p)->avail >= total)
+        return true;
+    struct str *q = realloc(*p, total + sizeof(struct str));
+    if (q == NULL)
+        return false;
+    *p = q;
+    (*p)->avail = total;
+    return true;
+}
+
+
 bool str_appendch(struct str **p, char c)
 {
     if (NULL == *p)
@@ -66,6 +79,24 @@ bool str_appendch(struct str **p, char c)
     if ((*p)->len+1 >= (*p)->avail && !str_grow(p))
         return false;
     (*p)->data[(*p)->len++] = c;
+    return true;
+}
+
+
+bool str_append_bytes(struct str **p, const char *bytes, size_t len)
+{
+    if (NULL == *p) {
+        *p = str_new(len);
+        memcpy((*p)->data, bytes, len);
+        return true;
+    }
+    size_t total;
+    if (__builtin_add_overflow((*p)->len, len, &total))
+        abort();
+    if (total >= (*p)->avail && !str_grow_to(p, total))
+        return false;
+    memcpy((*p)->data+(*p)->len, bytes, len);
+    (*p)->len = total;
     return true;
 }
 
