@@ -398,16 +398,18 @@ static bool inner_iolist_to_binary(struct str **acc, term t)
 }
 
 
-term iolist_to_binary(term t)
+bool iolist_to_binary(term t, term *u)
 {
+    if (!u) return false;
+
     struct str *acc = str_new(1);
     if (!inner_iolist_to_binary(&acc, t)) {
         str_free(&acc);
-        return THE_NON_VALUE;
+        return false;
     }
-    term out = enif_make_binary(NULL, &(ErlNifBinary){.size = acc->len, .data = (unsigned char *)acc->data});
+    *u = enif_make_binary(NULL, &(ErlNifBinary){.size = acc->len, .data = (unsigned char *)acc->data});
     str_free(&acc);
-    return out;
+    return true;
 }
 
 
@@ -812,7 +814,10 @@ int enif_inspect_binary(ErlNifEnv *UNUSED, term t, ErlNifBinary *bin)
 /* XXX wasteful */
 int enif_inspect_iolist_as_binary(ErlNifEnv *env, term t, ErlNifBinary *bin)
 {
-    return enif_inspect_binary(env, iolist_to_binary(t), bin);
+    term u;
+    if (!iolist_to_binary(t, &u))
+        return 0;
+    return enif_inspect_binary(env, u, bin);
 }
 
 
