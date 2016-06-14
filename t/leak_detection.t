@@ -18,6 +18,7 @@ quiet() {
 check_clean_nif() {
     echo "# clean NIF should have no leaks"
     echo 'clean_nif:return_ok().' | quiet valgrind --leak-check=full --error-exitcode=42 ./niffy ./t/clean_nif.so
+    echo 'clean_nif:return_iolist_as_binary([<<1,2,3>>, 42]).' | quiet valgrind --leak-check=full --error-exitcode=42 ./niffy ./t/clean_nif.so
 }
 
 check_leaky_nif() {
