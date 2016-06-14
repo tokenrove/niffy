@@ -369,27 +369,31 @@ term nreverse_list(term head)
 static bool inner_iolist_to_binary(struct str **acc, term t)
 {
     while (NIL != t) {
-        if (TAG_PRIMARY_LIST != (t & TAG_PRIMARY)) {
-            fprintf(stderr, "eh, don't know what to do with an improper list here\n");
-            abort();
-        }
+        if (TAG_PRIMARY_LIST != (t & TAG_PRIMARY))
+            return false;
         term *p = unbox(t);
         switch (type_of_term(CAR(p))) {
-        case TERM_BIN:
-            fprintf(stderr, "append bin\n");
+        case TERM_BOXED:
+        {
+            term *q = unbox(CAR(p));
+            if (TERM_BIN != type_of_term(q[0]))
+                return false;
+            unsigned size = q[0] >> TAG_HEADER_SIZE;
+            const char *r = (const char *)(q+1);
+            str_append_bytes(acc, r, size);
             break;
+        }
+
         case TERM_SMALL:
             str_appendch(acc, CAR(p)>>TAG_IMMED1_SIZE);
             break;
-        case TERM_FLOAT:
-            fprintf(stderr, "append float\n");
-            break;
+
         case TERM_CONS:
             if (!inner_iolist_to_binary(acc, CAR(p)))
                 return false;
             break;
+
         default:
-            fprintf(stderr, "dunno what to do with this\n");
             return false;
         }
         t = CDR(p);
