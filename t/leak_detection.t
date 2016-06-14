@@ -1,15 +1,28 @@
 #!/usr/bin/env bash
 
-set -eu
+set -eu -o pipefail
+
+verbose=false
+if [ "${1:-}" = '-v' ]; then
+   verbose=true
+fi
+
+quiet() {
+    if [ "$verbose" = true ]; then
+        "$@"
+    else
+        "$@" 2>/dev/null >/dev/null
+    fi
+}
 
 check_clean_nif() {
     echo "# clean NIF should have no leaks"
-    echo 'clean_nif:return_ok().' | valgrind --leak-check=full --error-exitcode=42 ./niffy ./t/clean_nif.so >/dev/null 2>/dev/null
+    echo 'clean_nif:return_ok().' | quiet valgrind --leak-check=full --error-exitcode=42 ./niffy ./t/clean_nif.so
 }
 
 check_leaky_nif() {
     echo "# leaky NIF should have leaks"
-    echo 'leaky_nif:alloc_resource_without_make().' | valgrind --leak-check=full --error-exitcode=42 ./niffy ./t/leaky_nif.so >/dev/null 2>/dev/null
+    echo 'leaky_nif:alloc_resource_without_make().' | quiet valgrind --leak-check=full --error-exitcode=42 ./niffy ./t/leaky_nif.so
 }
 
 echo 1..2
