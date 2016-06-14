@@ -369,27 +369,31 @@ term nreverse_list(term head)
 static bool inner_iolist_to_binary(struct str **acc, term t)
 {
     while (NIL != t) {
-        if (TAG_PRIMARY_LIST != (t & TAG_PRIMARY)) {
-            fprintf(stderr, "eh, don't know what to do with an improper list here\n");
-            abort();
-        }
+        if (TAG_PRIMARY_LIST != (t & TAG_PRIMARY))
+            return false;
         term *p = unbox(t);
         switch (type_of_term(CAR(p))) {
-        case TERM_BIN:
-            fprintf(stderr, "append bin\n");
+        case TERM_BOXED:
+        {
+            term *q = unbox(CAR(p));
+            if (TERM_BIN != type_of_term(q[0]))
+                return false;
+            unsigned size = q[0] >> TAG_HEADER_SIZE;
+            const char *r = (const char *)(q+1);
+            str_append_bytes(acc, r, size);
             break;
+        }
+
         case TERM_SMALL:
             str_appendch(acc, CAR(p)>>TAG_IMMED1_SIZE);
             break;
-        case TERM_FLOAT:
-            fprintf(stderr, "append float\n");
-            break;
+
         case TERM_CONS:
             if (!inner_iolist_to_binary(acc, CAR(p)))
                 return false;
             break;
+
         default:
-            fprintf(stderr, "dunno what to do with this\n");
             return false;
         }
         t = CDR(p);
@@ -398,16 +402,18 @@ static bool inner_iolist_to_binary(struct str **acc, term t)
 }
 
 
-term iolist_to_binary(term t)
+bool iolist_to_binary(term t, term *u)
 {
+    if (!u) return false;
+
     struct str *acc = str_new(1);
     if (!inner_iolist_to_binary(&acc, t)) {
         str_free(&acc);
-        return THE_NON_VALUE;
+        return false;
     }
-    term out = enif_make_binary(NULL, &(ErlNifBinary){.size = acc->len, .data = (unsigned char *)acc->data});
+    *u = enif_make_binary(NULL, &(ErlNifBinary){.size = acc->len, .data = (unsigned char *)acc->data});
     str_free(&acc);
-    return out;
+    return true;
 }
 
 
@@ -623,7 +629,7 @@ term enif_make_copy(ErlNifEnv *env, term t)
     case TERM_TUPLE:
         return copy_tuple(env, unbox(t));
     case TERM_CONS:
-        return copy_list(env,unbox(t));
+        return copy_list(env, unbox(t));
     case TERM_BIN:
         return copy_bin(env, unbox(t));
     default:
@@ -812,7 +818,10 @@ int enif_inspect_binary(ErlNifEnv *UNUSED, term t, ErlNifBinary *bin)
 /* XXX wasteful */
 int enif_inspect_iolist_as_binary(ErlNifEnv *env, term t, ErlNifBinary *bin)
 {
-    return enif_inspect_binary(env, iolist_to_binary(t), bin);
+    term u;
+    if (!iolist_to_binary(t, &u))
+        return 0;
+    return enif_inspect_binary(env, u, bin);
 }
 
 
@@ -1161,7 +1170,7 @@ int enif_map_iterator_get_pair(ErlNifEnv *UNUSED,
 }
 
 
-int enif_consume_timeslice(ErlNifEnv *env, int percent)
+int enif_consume_timeslice(ErlNifEnv *UNUSED, int UNUSED)
 {
     /* XXX should log */
     return 0;

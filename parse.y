@@ -88,7 +88,7 @@ list(L) ::= LBRACKET terms(A) PIPE term(T) RBRACKET. { L = nreverse_list(enif_ma
 binary(B) ::= LBIN RBIN. {
     B = enif_make_binary(NULL, &(ErlNifBinary){.size = 0, .data = NULL});
 }
-binary(B) ::= LBIN bin_elts(Es) RBIN. { B = iolist_to_binary(nreverse_list(Es)); }
+binary(B) ::= LBIN bin_elts(Es) RBIN. { assert(iolist_to_binary(nreverse_list(Es), &B)); }
 
 bin_elts(E) ::= bin_elts(Hs) COMMA bin_elt(T). { E = enif_make_list_cell(NULL, T, Hs); }
 bin_elts(E) ::= bin_elt(H). { E = enif_make_list(NULL, 1, H); }
