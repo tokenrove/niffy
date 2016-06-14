@@ -77,10 +77,6 @@ call this if your NIF doesn't have a load callback.)
 You can specify several SOs on the command-line, all of which will be
 loaded.  Not all of them have to be NIFs.
 
-### Fuzzing a NIF with hypothesis
-
-*TODO*
-
 ### Fuzzing a NIF with afl_fuzz
 
 Build your NIF with `afl-gcc`:
@@ -133,7 +129,48 @@ niffy, you must set `LD_BIND_LAZY=1` in your environment; otherwise,
 afl-fuzz sets `LD_BIND_NOW` and your fuzzer will mysteriously abort on
 all your test cases if the NIF uses any unimplemented functionality.
 
+### Tracing eunit and running your NIF calls through niffy
+
+You can setup a tracing process that feeds all the calls to your NIF
+through niffy running under valgrind through a port, and then invoke
+your eunit test suite.  For the simplest NIFs, something like this is
+sufficient:
+
+```erlang
+start() ->
+    Port = open_port({spawn_executable, "/usr/bin/valgrind"},
+                     [{args, ["--error-exitcode=42", "--",
+                              "../niffy/niffy", "./priv/my_nif.so", "-q"]},
+                      binary, stream, exit_status,
+                      {line, 1024}]),
+    Port ! {self(), {command, <<"_ = niffy:load_nif(my_nif, []).\n">>}},
+    erlang:trace_pattern({my_nif, '_', '_'}, true, []),
+    erlang:trace(all, true, [call]),
+    loop(Port).
+
+loop(Port) ->
+    receive
+        {trace, _, call, {Module, Function, Arguments}} ->
+            Port ! {self(), {command, format_mfa(Module, Function, Arguments)}},
+            loop(Port);
+        {_Port, {exit_status, Status}} ->
+            io:format("niffy exited with code ~p~n", [Status])
+    end.
+```
+
+In more complex situations, you may need to handle certain calls
+(those that return a non-printable term, for example) and rewrite them
+to the form `Handle = my_nif:creation_call(Args).`, and suitably
+replace later arguments that containing that non-printable term with
+`Handle`.  An example should soon be included here, but until then,
+feel free to contact me about it.
+
+
 ## Alternatives
 
 As an alternative to niffy, you could build a valgrind-enabled OTP,
 [using this recipe](https://gist.github.com/gburd/4157112).
+
+## Contact
+
+niffy is maintained by Julian Squires <julian@cipht.net>.
