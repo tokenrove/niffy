@@ -366,36 +366,41 @@ term nreverse_list(term head)
 }
 
 
+static bool inner_iolist_to_binary(struct str **, term);
+
+static bool inner_iolist_element_to_binary(struct str **acc, term t)
+{
+    switch (type_of_term(t)) {
+    case TERM_BOXED:
+    {
+        term *p = unbox(t);
+        if (TERM_BIN != type_of_term(p[0]))
+            return false;
+        unsigned size = p[0] >> TAG_HEADER_SIZE;
+        const char *s = (const char *)(p+1);
+        return str_append_bytes(acc, s, size);
+    }
+
+    case TERM_SMALL:
+        return str_appendch(acc, t>>TAG_IMMED1_SIZE);
+
+    case TERM_CONS:
+        return inner_iolist_to_binary(acc, t);
+
+    default:
+        return false;
+    }
+}
+
+
 static bool inner_iolist_to_binary(struct str **acc, term t)
 {
     while (NIL != t) {
         if (TAG_PRIMARY_LIST != (t & TAG_PRIMARY))
             return false;
         term *p = unbox(t);
-        switch (type_of_term(CAR(p))) {
-        case TERM_BOXED:
-        {
-            term *q = unbox(CAR(p));
-            if (TERM_BIN != type_of_term(q[0]))
-                return false;
-            unsigned size = q[0] >> TAG_HEADER_SIZE;
-            const char *r = (const char *)(q+1);
-            str_append_bytes(acc, r, size);
-            break;
-        }
-
-        case TERM_SMALL:
-            str_appendch(acc, CAR(p)>>TAG_IMMED1_SIZE);
-            break;
-
-        case TERM_CONS:
-            if (!inner_iolist_to_binary(acc, CAR(p)))
-                return false;
-            break;
-
-        default:
+        if (!inner_iolist_element_to_binary(acc, CAR(p)))
             return false;
-        }
         t = CDR(p);
     }
     return true;
@@ -407,7 +412,7 @@ bool iolist_to_binary(term t, term *u)
     if (!u) return false;
 
     struct str *acc = str_new(1);
-    if (!inner_iolist_to_binary(&acc, t)) {
+    if (!inner_iolist_element_to_binary(&acc, t)) {
         str_free(&acc);
         return false;
     }
