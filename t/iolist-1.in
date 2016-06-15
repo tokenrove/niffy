@@ -1,2 +1,3 @@
 clean_nif:return_iolist_as_binary([<<1,2,3>>, 42]).
 clean_nif:return_iolist_as_binary([[<<0>>,[[<<1,2,"three">>, 42]]],43]).
+clean_nif:return_iolist_as_binary(<<1,2,3>>).
