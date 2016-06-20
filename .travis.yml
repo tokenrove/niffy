@@ -12,3 +12,7 @@ addons:
       - ragel
       - lemon
       - valgrind
+notifications:
+  email: false
+  slack:
+    secure: cygVCRcaJk85oHc0X2c6aMTLkJhUj0PvG3MfcOyIs5ITSvFEtzA60lcuoayOMS9tsKd3MHWuwYugrP/YUSO2Jr+sOXgLhodsXe8gThqXtTGOIAX+7BfSTuNfPcuSeOzvPPQUQfFALY7y4Bp+ZmDzITv4VI5rdRkb0ztVJvQagrje+mVN1iWM8/jWGFwdm6AMx0zRy8cRt5zTLdhRFuSZhSoS+yi/UBLwObDH37bFBR4GaEx9p6Lv3xR03Y4EEPAUOhJUp8ZydVUrHDIuFRLXhfX0kzJtWeDx88R3jHhPJzmsEsN8zcx4SBhK3aLpYwtBM8osqQajI+4KV/I14hwIwadpWHBDuGeTrFfcunDLwBG+ScJbA86vnm6jlD0+B1r6yNX1oO+FUjssyd86a4pmzTjc6OVjvxw4j8qSCqyqjly35MgnDlZGszZq23Sct0OMJxmZ0uH6kBQpQgvKtwv80XDOPI2C0SMp4d3vhBjIjApiK/X6ElT89vncvrIh6578VLfaqQZli1ydMx+eMsvwyO+PbWVtSCCcn0qo10uDF/JC+lz5/Rlb6isujBWcVS2BiQjsLlezGIawEXptJgSlqzbUjS6QYZWYPgDineDwQB8rc0wJu5EOouLme939s7Nl+9FvLATKdDLyM+LL9Ruy9q5tFL4wJ/VQEKXiyQqFQv8=
