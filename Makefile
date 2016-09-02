@@ -17,7 +17,8 @@ PROVEFLAGS ?=
 
 NIFFY_OBJS = niffy.o nif_stubs.o lex.o parse.o atom.o str.o variable.o map.o
 OBJS = $(NIFFY_OBJS)
-GENERATED = lex.c parse.c parse.h
+GENERATED = lex.c parse.c parse.h parse.out
+BINARIES = niffy fuzz_skeleton lex_test parse_test t/leaky_nif.so t/clean_nif.so
 
 all: niffy fuzz_skeleton test_programs
 
@@ -48,7 +49,7 @@ parse.o: parse.c
 	$(LEMON) $<
 
 clean:
-	$(RM) $(OBJS) $(OBJS:.o=.d) $(GENERATED) lex.t niffy fuzz_skeleton t/leaky_nif.so t/clean_nif.so
+	$(RM) $(OBJS) $(OBJS:.o=.d) $(GENERATED) $(BINARIES)
 
 check: niffy test_programs
 	prove $(PROVEFLAGS)
