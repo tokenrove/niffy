@@ -12,13 +12,12 @@ PARSE_CFLAGS := $(CFLAGS) -Wno-unused-variable -Wno-unused-parameter -Wno-sign-c
 LDFLAGS ?= -ldl
 RAGEL ?= ragel
 RAGELFLAGS ?= -G2
-LEMON ?= lemon
 PROVEFLAGS ?=
 
 NIFFY_OBJS = niffy.o nif_stubs.o lex.o parse.o atom.o str.o variable.o map.o
 OBJS = $(NIFFY_OBJS)
 GENERATED = lex.c parse.c parse.h parse.out
-BINARIES = niffy fuzz_skeleton lex_test parse_test t/leaky_nif.so t/clean_nif.so
+BINARIES = niffy fuzz_skeleton lex_test parse_test t/leaky_nif.so t/clean_nif.so vendor/lemon/lemon
 
 all: niffy fuzz_skeleton test_programs
 
@@ -36,6 +35,9 @@ lex_test: lex.o atom.o str.o | parse.h
 
 parse_test: parse_test.o atom.o str.o map.o variable.o nif_stubs.o lex.o parse.o | parse.h
 
+vendor/lemon/lemon: vendor/lemon/lemon.c
+	$(CC) -o $@ $<
+
 t/%.so: t/%.c
 	$(CC) $(CFLAGS) -fPIC -shared $^ -o $@
 
@@ -45,8 +47,8 @@ lex.c: lex.rl
 parse.o: parse.c
 	$(CC) $(PARSE_CFLAGS) -c $< -o $@
 
-%.c %.h: %.y
-	$(LEMON) $<
+%.c %.h: %.y | vendor/lemon/lemon
+	vendor/lemon/lemon $<
 
 clean:
 	$(RM) $(OBJS) $(OBJS:.o=.d) $(GENERATED) $(BINARIES)
