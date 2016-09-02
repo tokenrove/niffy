@@ -161,6 +161,10 @@ main := |*
 
 void lex_init(struct lexer *state)
 {
+    /* Compromise to suppress unused variable warnings. */
+    (void)erlang_term_first_final;
+    (void)erlang_term_en_main;
+
     *state = (struct lexer){
         .location = {.line_num = 1}
     };

@@ -544,7 +544,7 @@ int enif_is_identical(term a, term b)
 }
 
 
-int enif_compare(term a, term b)
+int enif_compare(term UNUSED, term UNUSED)
 {
     return -1;
 }

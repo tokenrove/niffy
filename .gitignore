@@ -4,11 +4,13 @@ parse.c
 parse.h
 *.o
 *.d
+*.out
 
 # executables
 niffy
+fuzz_skeleton
 lex_test
 parse_test
 
-# editor save files
-*~
+# test NIFs
+t/*.so

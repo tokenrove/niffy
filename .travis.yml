@@ -1,3 +1,5 @@
+os:
+  - linux
 sudo: false
 language: erlang
 script: make check PROVEFLAGS=-v DEFINES=-DLACKS_BUILTIN_ADD_OVERFLOW
@@ -6,6 +8,7 @@ otp_release:
   - 18.1
   - 18.2
   - 18.3
+  - 19.0
 addons:
   apt:
     packages:
