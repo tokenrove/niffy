@@ -11,6 +11,7 @@ niffy
 fuzz_skeleton
 lex_test
 parse_test
+vendor/lemon/lemon
 
 # test NIFs
 t/*.so
