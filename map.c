@@ -57,7 +57,7 @@ static bool grow(struct atom_ptr_map *m)
         next = m->avail + (m->avail >> 1);
     else if (m->avail >= next)
         next = m->avail * 2;
-    void *old = m->entries;
+    struct atom_ptr_pair *old = m->entries;
     m->entries = calloc(next, sizeof(*m->entries));
     if (NULL == m->entries) {
         m->entries = old;
@@ -65,7 +65,7 @@ static bool grow(struct atom_ptr_map *m)
     }
     m->avail = next;
     for (size_t i = 0; i < original_size; ++i) {
-        struct atom_ptr_pair p = m->entries[i];
+        struct atom_ptr_pair p = old[i];
         if (p.k) {
             if (!insert(m, p)) {
                 free(m->entries);
