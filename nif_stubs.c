@@ -850,6 +850,10 @@ int enif_realloc_binary(ErlNifBinary *bin, size_t size)
     return 1;
 }
 
+void enif_release_binary(ErlNifBinary *bin)
+{
+    free(bin->data);
+}
 
 int enif_has_pending_exception(ErlNifEnv *env, term *reason)
 {
