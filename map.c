@@ -92,7 +92,7 @@ bool map_insert(struct atom_ptr_map *m, atom k, void *v)
     }
     if (!grow(m))
         return false;
-    return map_insert(m, k, v) && ++m->len;
+    return map_insert(m, k, v);
 }
 
 
