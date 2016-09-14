@@ -30,9 +30,9 @@ nifty was already taken.
 
 ## Building
 
-Requires [ragel](http://www.colm.net/open-source/ragel/),
-[lemon](http://www.hwaci.com/sw/lemon/), and the header files you'd
-use to compile a NIF.  Run `make all` to build everything.
+Requires [ragel](http://www.colm.net/open-source/ragel/), and the
+header files you'd use to compile a NIF.  Run `make all` to build
+everything.
 
 ## Usage
 
