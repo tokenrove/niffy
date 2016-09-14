@@ -843,7 +843,7 @@ int enif_alloc_binary(size_t size, ErlNifBinary *bin)
 int enif_realloc_binary(ErlNifBinary *bin, size_t size)
 {
     unsigned char *p = realloc(bin->data, size);
-    if (NULL == p)
+    if (size && NULL == p)
         return 0;
     bin->data = p;
     bin->size = size;
