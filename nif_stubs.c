@@ -807,6 +807,14 @@ unsigned char *enif_make_new_binary(ErlNifEnv *env, size_t size, term *termp)
 }
 
 
+void enif_release_binary(ErlNifBinary *bin)
+{
+    free(bin->data);
+    bin->data = NULL;
+    bin->size = 0;
+}
+
+
 int enif_inspect_binary(ErlNifEnv *UNUSED, term t, ErlNifBinary *bin)
 {
     if (TAG_PRIMARY_BOXED != (t & TAG_PRIMARY))
