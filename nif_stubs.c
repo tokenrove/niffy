@@ -841,7 +841,7 @@ int enif_inspect_iolist_as_binary(ErlNifEnv *env, term t, ErlNifBinary *bin)
 int enif_alloc_binary(size_t size, ErlNifBinary *bin)
 {
     bin->data = malloc(size);
-    if (NULL == bin->data)
+    if (size && NULL == bin->data)
         return 0;
     bin->size = size;
     return 1;
@@ -851,7 +851,7 @@ int enif_alloc_binary(size_t size, ErlNifBinary *bin)
 int enif_realloc_binary(ErlNifBinary *bin, size_t size)
 {
     unsigned char *p = realloc(bin->data, size);
-    if (NULL == p)
+    if (size && NULL == p)
         return 0;
     bin->data = p;
     bin->size = size;
