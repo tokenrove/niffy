@@ -425,49 +425,20 @@ bool iolist_to_binary(term t, term *u)
 void *enif_priv_data(ErlNifEnv *env) { return env->priv_data; }
 
 
-term enif_make_int(ErlNifEnv *UNUSED, int i)
-{
-    return make_small(i);
-}
+#define DEFINE_ENIF_INT(name, type)                            \
+    term enif_make_##name(ErlNifEnv *UNUSED, type v)           \
+    { return make_small(v); }                                  \
+    int enif_get_##name(ErlNifEnv *UNUSED, term t, type *p)    \
+    {                                                          \
+        if (TAG_IMMED1_SMALL != (t & TAG_IMMED1)) return 0;    \
+        *p = t >> TAG_IMMED1_SIZE;                             \
+        return 1;                                              \
+    }
 
-
-term enif_make_uint(ErlNifEnv *UNUSED, unsigned i)
-{
-    return make_small(i);
-}
-
-
-term enif_make_long(ErlNifEnv *UNUSED, long i)
-{
-    return make_small(i);
-}
-
-
-int enif_get_uint(ErlNifEnv *UNUSED, term t, unsigned *ip)
-{
-    if (TAG_IMMED1_SMALL != (t & TAG_IMMED1))
-        return 0;
-    *ip = t >> TAG_IMMED1_SIZE;
-    return 1;
-}
-
-
-int enif_get_int(ErlNifEnv *UNUSED, term t, int *ip)
-{
-    if (TAG_IMMED1_SMALL != (t & TAG_IMMED1))
-        return 0;
-    *ip = t >> TAG_IMMED1_SIZE;
-    return 1;
-}
-
-
-int enif_get_long(ErlNifEnv *UNUSED, term t, long *ip)
-{
-    if (TAG_IMMED1_SMALL != (t & TAG_IMMED1))
-        return 0;
-    *ip = t >> TAG_IMMED1_SIZE;
-    return 1;
-}
+DEFINE_ENIF_INT(int, int)
+DEFINE_ENIF_INT(long, long)
+DEFINE_ENIF_INT(uint, unsigned)
+DEFINE_ENIF_INT(ulong, unsigned long)
 
 
 term enif_make_double(ErlNifEnv *env, double d)
