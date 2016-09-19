@@ -38,7 +38,7 @@ static struct enif_environment_t *find_module_or_die(atom module)
 }
 
 
-static term load_nif(ErlNifEnv *env, int argc, const term argv[])
+static term bif_load_nif(ErlNifEnv *env, int argc, const term argv[])
 {
     if (2 != argc)
         return enif_make_badarg(env);
@@ -49,7 +49,7 @@ static term load_nif(ErlNifEnv *env, int argc, const term argv[])
 }
 
 
-static term halt(ErlNifEnv *UNUSED, int UNUSED, const term *UNUSED)
+static term bif_halt(ErlNifEnv *UNUSED, int UNUSED, const term *UNUSED)
 {
     exit(0);
 }
@@ -117,8 +117,8 @@ void niffy_construct_erlang_env(void)
     };
     assert(map_insert(&modules, intern_cstr(e->entry->name), e));
 
-    assert(add_fn(&e->fns, "load_nif", (struct fptr){.arity = 2, .fptr = load_nif}));
-    assert(add_fn(&e->fns, "halt", (struct fptr){.arity = 0, .fptr = halt}));
+    assert(add_fn(&e->fns, "load_nif", (struct fptr){.arity = 2, .fptr = bif_load_nif}));
+    assert(add_fn(&e->fns, "halt", (struct fptr){.arity = 0, .fptr = bif_halt}));
 }
 
 
