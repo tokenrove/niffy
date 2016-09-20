@@ -49,10 +49,10 @@ static term bif_load_nif(ErlNifEnv *env, int argc, const term argv[])
 }
 
 
-static term bif_assert_eq(ErlNifEnv *env, int UNUSED, const term argv[])
+static term bif_assert_eq(ErlNifEnv *UNUSED, int UNUSED, const term argv[])
 {
     if (enif_is_identical(argv[0], argv[1]))
-        return enif_make_atom(env, "true");
+        return nil;
     fputs("assertion failed: ", stderr);
     pretty_print_term(stderr, &argv[0]);
     fputs(" =:= ", stderr);
@@ -62,10 +62,10 @@ static term bif_assert_eq(ErlNifEnv *env, int UNUSED, const term argv[])
 }
 
 
-static term bif_assert_ne(ErlNifEnv *env, int UNUSED, const term argv[])
+static term bif_assert_ne(ErlNifEnv *UNUSED, int UNUSED, const term argv[])
 {
     if (!enif_is_identical(argv[0], argv[1]))
-        return enif_make_atom(env, "true");
+        return nil;
     fputs("assertion failed: ", stderr);
     pretty_print_term(stderr, &argv[0]);
     fputs(" =/= ", stderr);
