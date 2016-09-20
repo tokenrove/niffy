@@ -499,16 +499,31 @@ int enif_is_identical(term a, term b)
     if (a == b) return 1;
     if (TAG_PRIMARY_IMMED == (a & b & TAG_PRIMARY))
         return 0;
+
     term_type at = type_of_term(a), bt = type_of_term(b);
     if (at != bt)
         return 0;
+
     switch (at) {
-    case TERM_BIN:
-        return cmp_bin(unbox(a), unbox(b));
     case TERM_CONS:
         return cmp_cons(unbox(a), unbox(b));
-    case TERM_TUPLE:
-        return cmp_tuple(unbox(a), unbox(b));
+
+    case TERM_BOXED:
+        at = type_of_boxed_term(a);
+        bt = type_of_boxed_term(b);
+        if (at != bt)
+            return 0;
+
+        switch (at) {
+        case TERM_BIN:
+            return cmp_bin(unbox(a), unbox(b));
+        case TERM_TUPLE:
+            return cmp_tuple(unbox(a), unbox(b));
+        default:
+            return 0;
+        }
+        break;
+
     default:
         return 0;
     }

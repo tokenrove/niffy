@@ -38,7 +38,7 @@ static struct enif_environment_t *find_module_or_die(atom module)
 }
 
 
-static term load_nif(ErlNifEnv *env, int argc, const term argv[])
+static term bif_load_nif(ErlNifEnv *env, int argc, const term argv[])
 {
     if (2 != argc)
         return enif_make_badarg(env);
@@ -49,7 +49,33 @@ static term load_nif(ErlNifEnv *env, int argc, const term argv[])
 }
 
 
-static term halt(ErlNifEnv *UNUSED, int UNUSED, const term *UNUSED)
+static term bif_assert_eq(ErlNifEnv *UNUSED, int UNUSED, const term argv[])
+{
+    if (enif_is_identical(argv[0], argv[1]))
+        return nil;
+    fputs("assertion failed: ", stderr);
+    pretty_print_term(stderr, &argv[0]);
+    fputs(" =:= ", stderr);
+    pretty_print_term(stderr, &argv[1]);
+    fputc('\n', stderr);
+    abort();
+}
+
+
+static term bif_assert_ne(ErlNifEnv *UNUSED, int UNUSED, const term argv[])
+{
+    if (!enif_is_identical(argv[0], argv[1]))
+        return nil;
+    fputs("assertion failed: ", stderr);
+    pretty_print_term(stderr, &argv[0]);
+    fputs(" =/= ", stderr);
+    pretty_print_term(stderr, &argv[1]);
+    fputc('\n', stderr);
+    abort();
+}
+
+
+static term bif_halt(ErlNifEnv *UNUSED, int UNUSED, const term *UNUSED)
 {
     exit(0);
 }
@@ -117,8 +143,10 @@ void niffy_construct_erlang_env(void)
     };
     assert(map_insert(&modules, intern_cstr(e->entry->name), e));
 
-    assert(add_fn(&e->fns, "load_nif", (struct fptr){.arity = 2, .fptr = load_nif}));
-    assert(add_fn(&e->fns, "halt", (struct fptr){.arity = 0, .fptr = halt}));
+    assert(add_fn(&e->fns, "load_nif", (struct fptr){.arity = 2, .fptr = bif_load_nif}));
+    assert(add_fn(&e->fns, "assert_eq", (struct fptr){.arity = 2, .fptr = bif_assert_eq}));
+    assert(add_fn(&e->fns, "assert_ne", (struct fptr){.arity = 2, .fptr = bif_assert_ne}));
+    assert(add_fn(&e->fns, "halt", (struct fptr){.arity = 0, .fptr = bif_halt}));
 }
 
 
