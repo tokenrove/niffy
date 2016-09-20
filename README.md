@@ -124,6 +124,10 @@ However, you probably want more control over the representation fed to
 your NIF, in which case you can modify `fuzz_skeleton.c` to accept
 input as appropriate for your NIF.
 
+For extremely rudimentary property testing, the `niffy:assert_eq/2` and
+`niffy:assert_ne/2` functions are provided, which `abort` on assertion
+failure.
+
 **Warning:** If your NIF does not load without the `--lazy` option to
 niffy, you must set `LD_BIND_LAZY=1` in your environment; otherwise,
 afl-fuzz sets `LD_BIND_NOW` and your fuzzer will mysteriously abort on
