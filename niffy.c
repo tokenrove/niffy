@@ -49,6 +49,12 @@ static term bif_load_nif(ErlNifEnv *env, int argc, const term argv[])
 }
 
 
+static term bif_assert_eq(ErlNifEnv *env, int UNUSED, const term argv[])
+{
+    assert(enif_is_identical(argv[0], argv[1]));
+    return enif_make_atom(env, "true");
+}
+
 static term bif_halt(ErlNifEnv *UNUSED, int UNUSED, const term *UNUSED)
 {
     exit(0);
@@ -118,6 +124,7 @@ void niffy_construct_erlang_env(void)
     assert(map_insert(&modules, intern_cstr(e->entry->name), e));
 
     assert(add_fn(&e->fns, "load_nif", (struct fptr){.arity = 2, .fptr = bif_load_nif}));
+    assert(add_fn(&e->fns, "assert_eq", (struct fptr){.arity = 2, .fptr = bif_assert_eq}));
     assert(add_fn(&e->fns, "halt", (struct fptr){.arity = 0, .fptr = bif_halt}));
 }
 
