@@ -49,6 +49,15 @@ static term bif_load_nif(ErlNifEnv *env, int argc, const term argv[])
 }
 
 
+static term bif_byte_size(ErlNifEnv *env, int UNUSED, const term argv[])
+{
+    ErlNifBinary bin;
+    if (!enif_inspect_binary(env, argv[0], &bin))
+        return enif_make_badarg(env);
+    return enif_make_ulong(env, bin.size);
+}
+
+
 static term bif_element(ErlNifEnv *env, int UNUSED, const term argv[])
 {
     int index, arity;
@@ -160,6 +169,7 @@ void niffy_construct_erlang_env(void)
     assert(map_insert(&modules, intern_cstr(e->entry->name), e));
 
     assert(add_fn(&e->fns, "load_nif", (struct fptr){.arity = 2, .fptr = bif_load_nif}));
+    assert(add_fn(&e->fns, "byte_size", (struct fptr){.arity = 1, .fptr = bif_byte_size}));
     assert(add_fn(&e->fns, "element", (struct fptr){.arity = 2, .fptr = bif_element}));
     assert(add_fn(&e->fns, "assert_eq", (struct fptr){.arity = 2, .fptr = bif_assert_eq}));
     assert(add_fn(&e->fns, "assert_ne", (struct fptr){.arity = 2, .fptr = bif_assert_ne}));
