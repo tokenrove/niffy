@@ -49,6 +49,22 @@ static term bif_load_nif(ErlNifEnv *env, int argc, const term argv[])
 }
 
 
+static term bif_element(ErlNifEnv *env, int UNUSED, const term argv[])
+{
+    int index, arity;
+    const term *array;
+    if (!enif_get_int(env, argv[0], &index))
+        return enif_make_badarg(env);
+    if (!enif_get_tuple(env, argv[1], &arity, &array))
+        return enif_make_badarg(env);
+
+    if (index < 1 || index > arity)
+        return enif_make_badarg(env);
+
+    return array[index - 1];
+}
+
+
 static term bif_assert_eq(ErlNifEnv *UNUSED, int UNUSED, const term argv[])
 {
     if (enif_is_identical(argv[0], argv[1]))
@@ -144,6 +160,7 @@ void niffy_construct_erlang_env(void)
     assert(map_insert(&modules, intern_cstr(e->entry->name), e));
 
     assert(add_fn(&e->fns, "load_nif", (struct fptr){.arity = 2, .fptr = bif_load_nif}));
+    assert(add_fn(&e->fns, "element", (struct fptr){.arity = 2, .fptr = bif_element}));
     assert(add_fn(&e->fns, "assert_eq", (struct fptr){.arity = 2, .fptr = bif_assert_eq}));
     assert(add_fn(&e->fns, "assert_ne", (struct fptr){.arity = 2, .fptr = bif_assert_ne}));
     assert(add_fn(&e->fns, "halt", (struct fptr){.arity = 0, .fptr = bif_halt}));
