@@ -72,6 +72,13 @@ Note that the NIF's `load` function will not be called unless you
 explicitly call `niffy:load_nif(nif_name, [])`.  (You don't need to
 call this if your NIF doesn't have a load callback.)
 
+Erlang BIFs available in niffy:
+
+- `niffy:load_nif/2`
+- `niffy:halt/0`
+- `niffy:byte_size/1`
+- `niffy:element/2`
+
 ### Multiple NIFs and other libraries
 
 You can specify several SOs on the command-line, all of which will be
