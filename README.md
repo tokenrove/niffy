@@ -124,8 +124,8 @@ However, you probably want more control over the representation fed to
 your NIF, in which case you can modify `fuzz_skeleton.c` to accept
 input as appropriate for your NIF.
 
-For extremely rudimentary property testing, the `niffy:assert_eq/2` and
-`niffy:assert_ne/2` functions are provided, which `abort` on assertion
+For extremely rudimentary property testing, the `assert:eq/2` and
+`assert:ne/2` functions are provided, which `abort` on assertion
 failure.
 
 **Warning:** If your NIF does not load without the `--lazy` option to
