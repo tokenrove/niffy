@@ -30,6 +30,7 @@ int main(int argc, char **argv)
         return 1;
     }
     niffy_construct_erlang_env();
+    niffy_construct_assert_env();
     /* Beware!  In a (well-meaning) attempt to speed up fuzzing,
      * afl-fuzz by default sets LD_BIND_NOW which will override this
      * RTLD_LAZY; if your NIF uses any functions that aren't implement
