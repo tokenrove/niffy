@@ -72,6 +72,7 @@ int main(int argc, char **argv)
     assert(n_sos > 0);
 
     niffy_construct_erlang_env();
+    niffy_construct_assert_env();
 
     for (int so_idx = 0; so_idx < n_sos && optind < argc; ++so_idx, ++optind) {
         if (!niffy_load_so(argv[optind], rtld_mode, verbosity))
