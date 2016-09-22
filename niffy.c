@@ -49,6 +49,37 @@ static term bif_load_nif(ErlNifEnv *env, int argc, const term argv[])
 }
 
 
+static term bif_byte_size(ErlNifEnv *env, int UNUSED, const term argv[])
+{
+    ErlNifBinary bin;
+    if (!enif_inspect_binary(env, argv[0], &bin))
+        return enif_make_badarg(env);
+    return enif_make_ulong(env, bin.size);
+}
+
+
+static term bif_element(ErlNifEnv *env, int UNUSED, const term argv[])
+{
+    int index, arity;
+    const term *array;
+    if (!enif_get_int(env, argv[0], &index))
+        return enif_make_badarg(env);
+    if (!enif_get_tuple(env, argv[1], &arity, &array))
+        return enif_make_badarg(env);
+
+    if (index < 1 || index > arity)
+        return enif_make_badarg(env);
+
+    return array[index - 1];
+}
+
+
+static term bif_halt(ErlNifEnv *UNUSED, int UNUSED, const term *UNUSED)
+{
+    exit(0);
+}
+
+
 static term bif_assert_eq(ErlNifEnv *UNUSED, int UNUSED, const term argv[])
 {
     if (enif_is_identical(argv[0], argv[1]))
@@ -72,12 +103,6 @@ static term bif_assert_ne(ErlNifEnv *UNUSED, int UNUSED, const term argv[])
     pretty_print_term(stderr, &argv[1]);
     fputc('\n', stderr);
     abort();
-}
-
-
-static term bif_halt(ErlNifEnv *UNUSED, int UNUSED, const term *UNUSED)
-{
-    exit(0);
 }
 
 
@@ -129,7 +154,7 @@ static bool add_fn(struct atom_ptr_map *fm, const char *s, struct fptr fn)
 }
 
 
-static struct enif_entry_t internal_env_entry = {
+static struct enif_entry_t erlang_env_entry = {
     .name = "niffy"
 };
 
@@ -139,14 +164,32 @@ void niffy_construct_erlang_env(void)
     struct enif_environment_t *e = calloc(1, sizeof(*e));
     assert(e);
     *e = (struct enif_environment_t){
-        .entry = &internal_env_entry
+        .entry = &erlang_env_entry
     };
     assert(map_insert(&modules, intern_cstr(e->entry->name), e));
 
     assert(add_fn(&e->fns, "load_nif", (struct fptr){.arity = 2, .fptr = bif_load_nif}));
-    assert(add_fn(&e->fns, "assert_eq", (struct fptr){.arity = 2, .fptr = bif_assert_eq}));
-    assert(add_fn(&e->fns, "assert_ne", (struct fptr){.arity = 2, .fptr = bif_assert_ne}));
     assert(add_fn(&e->fns, "halt", (struct fptr){.arity = 0, .fptr = bif_halt}));
+    assert(add_fn(&e->fns, "byte_size", (struct fptr){.arity = 1, .fptr = bif_byte_size}));
+    assert(add_fn(&e->fns, "element", (struct fptr){.arity = 2, .fptr = bif_element}));
+}
+
+
+static struct enif_entry_t assert_env_entry = {
+    .name = "assert"
+};
+
+void niffy_construct_assert_env(void)
+{
+    struct enif_environment_t *e = calloc(1, sizeof(*e));
+    assert(e);
+    *e = (struct enif_environment_t){
+        .entry = &assert_env_entry
+    };
+    assert(map_insert(&modules, intern_cstr(e->entry->name), e));
+
+    assert(add_fn(&e->fns, "eq", (struct fptr){.arity = 2, .fptr = bif_assert_eq}));
+    assert(add_fn(&e->fns, "ne", (struct fptr){.arity = 2, .fptr = bif_assert_ne}));
 }
 
 
