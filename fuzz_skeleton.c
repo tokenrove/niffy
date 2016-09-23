@@ -44,8 +44,6 @@ int main(int argc, char **argv)
     FILE *in = fopen(argv[2], "r");
     assert(in);
 
-    char *line = NULL;
-    size_t line_len = 0;
     struct lexer lexer;
     lex_init(&lexer);
     void *pParser;
@@ -54,24 +52,27 @@ int main(int argc, char **argv)
 
     process(&lexer, pParser, "Input = <<");
 
-    ssize_t cnt;
     bool is_first = true;
-    while (-1 != (cnt = getline(&line, &line_len, stdin))) {
-        char *tmp = malloc(cnt*4+1), *p = tmp;
+    char buf_in[4096], buf_out[5*sizeof(buf_in)+1];
+    size_t len;
+    while ((len = fread(buf_in, 1, sizeof(buf_in), stdin))) {
+        char *p = buf_in, *q = buf_out;
         if (is_first) {
-            p += snprintf(p, 4, "%hhu", (uint8_t)line[0]);
+            q += snprintf(q, 4, "%hhu", (uint8_t)*p++);
             is_first = false;
         }
-        for (ssize_t i = 1; i < cnt; ++i)
-            p += snprintf(p, 5, ",%hhu", (uint8_t)line[i]);
-        *p = 0;
-        process(&lexer, pParser, tmp);
-        free(tmp);
+        while (p < buf_in+len)
+            q += snprintf(q, 5, ",%hhu", (uint8_t)*p++);
+        *q = 0;
+        assert(q < buf_out+sizeof(buf_out));
+        process(&lexer, pParser, buf_out);
     }
 
     process(&lexer, pParser, ">>.\n");
 
     /* Read the rest from the supplied file */
+    char *line = NULL;
+    size_t line_len = 0;
     while (-1 != getline(&line, &line_len, in))
         process(&lexer, pParser, line);
     Parse(pParser, 0, (struct token){.type = 0, .location = lexer.location},
