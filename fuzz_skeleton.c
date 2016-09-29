@@ -23,8 +23,8 @@ static void process(struct lexer *lexer, void *parser, char *input)
 
 int main(int argc, char **argv)
 {
-    if (argc != 3) {
-        fprintf(stderr, "Usage:\n  %s <NIF .so> <term file>\n\n", argv[0]);
+    if (argc < 3) {
+        fprintf(stderr, "Usage:\n  %s <NIF .so>... <term file>\n\n", argv[0]);
         fprintf(stderr, "The variable Input will be bound to a binary "
                 "constructed from stdin before the term file is read.\n");
         return 1;
@@ -40,8 +40,9 @@ int main(int argc, char **argv)
      * Set LD_BIND_LAZY in your environment before running afl-fuzz,
      * unless you know niffy implements everything your NIF
      * references. */
-    assert(niffy_load_so(argv[1], RTLD_LAZY, 0));
-    FILE *in = fopen(argv[2], "r");
+    for (int i = 1; i < (argc - 1); ++i)
+        assert(niffy_load_so(argv[i], RTLD_LAZY, 0));
+    FILE *in = fopen(argv[argc - 1], "r");
     assert(in);
 
     struct lexer lexer;
