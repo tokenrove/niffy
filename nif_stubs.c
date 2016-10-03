@@ -1,6 +1,7 @@
 
 #include <assert.h>
 #include <ctype.h>
+#include <pthread.h>
 #include <stdarg.h>
 #include <string.h>
 
@@ -1030,6 +1031,30 @@ int enif_get_string(ErlNifEnv *UNUSED, term t, char *buf, unsigned size,
     if (size > 0)
         buf[count++] = 0;
     return (NIL == t) ? count : -count;
+}
+
+
+int enif_tsd_key_create(char *UNUSED, ErlNifTSDKey *key)
+{
+    return pthread_key_create((pthread_key_t *)key, NULL);
+}
+
+
+void enif_tsd_key_destroy(ErlNifTSDKey key)
+{
+    assert(0 == pthread_key_delete(key));
+}
+
+
+void enif_tsd_set(ErlNifTSDKey key, void *data)
+{
+    assert(0 == pthread_setspecific(key, data));
+}
+
+
+void *enif_tsd_get(ErlNifTSDKey key)
+{
+    return pthread_getspecific(key);
 }
 
 
