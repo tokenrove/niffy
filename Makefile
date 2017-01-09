@@ -57,6 +57,7 @@ check: niffy test_programs
 	prove $(PROVEFLAGS)
 
 install: niffy
+	$(INSTALL) -d $(PREFIX)/bin
 	$(INSTALL) ./niffy $(PREFIX)/bin/niffy
 
 -include $(OBJS:.o=.d)
