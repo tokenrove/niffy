@@ -28,6 +28,10 @@ nifty was already taken.
 - isn't character encoding aware (no UTF-8 support)
 - much of the NIF API is still unimplemented
 
+## License
+
+[GPLv3](https://www.gnu.org/licenses/gpl-3.0.en.html)
+
 ## Building
 
 Requires [ragel](http://www.colm.net/open-source/ragel/), and the
