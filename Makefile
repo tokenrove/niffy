@@ -1,6 +1,6 @@
 .PHONY: clean all check test_programs
 
-ERTS_INCLUDE_DIR ?= $(shell erl -smp disable -noshell -s init stop -eval "io:format(\"~s/erts-~s/include/\", [code:root_dir(), erlang:system_info(version)]), halt(0).")
+ERTS_INCLUDE_DIR ?= $(shell erl -noshell -s init stop -eval "io:format(\"~s/erts-~s/include/\", [code:root_dir(), erlang:system_info(version)]), halt(0).")
 
 PREFIX ?= /usr/local
 INSTALL ?= install

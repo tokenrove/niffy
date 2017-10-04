@@ -135,9 +135,25 @@ However, you probably want more control over the representation fed to
 your NIF, in which case you can modify `fuzz_skeleton.c` to accept
 input as appropriate for your NIF.
 
+**Tip:** To make sure everything is working, inject an intentional,
+obvious bug into the NIF and verify that afl-fuzz catches it.  Usually
+if you do something like make an allocation size off-by-one or
+similar, afl-fuzz will find a crashing case almost immediately.  Then
+you know your setup is good, you can remove the bug, and proceed.
+
 For extremely rudimentary property testing, the `assert:eq/2` and
 `assert:ne/2` functions are provided, which `abort` on assertion
 failure.
+
+For example, I used the following fuzz term for testing LZ4's
+round-trip:
+
+``` erlang
+_ = niffy:load_nif(lz4, []).
+Compressed = lz4:compress(Input, []).
+Decompressed = lz4:decompress(Compressed, []).
+assert:eq(Input, Decompressed).
+```
 
 **Warning:** If your NIF does not load without the `--lazy` option to
 niffy, you must set `LD_BIND_LAZY=1` in your environment; otherwise,
