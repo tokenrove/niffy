@@ -25,10 +25,16 @@ static ERL_NIF_TERM return_iolist_as_binary(ErlNifEnv *env, int argc, const ERL_
     return enif_make_binary(env, &bin);
 }
 
-
+static ERL_NIF_TERM alloc_and_make_binary(ErlNifEnv *env, int UNUSED, const ERL_NIF_TERM *UNUSED)
+{
+    ErlNifBinary bin;
+    enif_alloc_binary(42, &bin);
+    return enif_make_binary(env, &bin);
+}
 
 static ErlNifFunc fns[] = {
     {"return_ok", 0, return_ok},
-    {"return_iolist_as_binary", 1, return_iolist_as_binary}
+    {"return_iolist_as_binary", 1, return_iolist_as_binary},
+    {"alloc_and_make_binary", 0, alloc_and_make_binary}
 };
 ERL_NIF_INIT(clean_nif, fns, &load, NULL, NULL, NULL);
