@@ -869,6 +869,35 @@ void *enif_alloc_resource(ErlNifResourceType *UNUSED, size_t size)
     return malloc(size);
 }
 
+int enif_fprintf(FILE *filep, const char *format, ...)
+{
+    int ret;
+    va_list arglist;
+    va_start(arglist, format);
+    ret = vfprintf(filep, format, arglist);
+    va_end(arglist);
+    return ret;
+}
+
+int enif_vfprintf(FILE *filep, const char *format, va_list ap)
+{
+    return vfprintf(filep, format, ap);
+}
+
+int enif_snprintf(char *buffer, size_t size, const char *format, ...)
+{
+    int ret;
+    va_list arglist;
+    va_start(arglist, format);
+    ret = vsnprintf(buffer, size, format, arglist);
+    va_end(arglist);
+    return ret;
+}
+
+int enif_vsnprintf(char *buffer, size_t size, const char *format, va_list ap)
+{
+    return vsnprintf(buffer, size, format, ap);
+}
 
 void enif_release_resource(void *UNUSED)
 {
